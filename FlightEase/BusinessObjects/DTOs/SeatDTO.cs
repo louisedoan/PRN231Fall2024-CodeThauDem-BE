@@ -1,6 +1,6 @@
 ﻿namespace BusinessObjects.DTOs
 {
-    public class UserDTO
+    public class SeatDTO
     {
     }
 }
