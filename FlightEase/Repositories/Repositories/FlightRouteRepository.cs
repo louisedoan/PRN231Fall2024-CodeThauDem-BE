@@ -3,17 +3,17 @@ using BusinessObjects.Entities;
 using Microsoft.EntityFrameworkCore;
 using Repositories.Repositories.BaseRepository;
 
-namespace FlightEaseDB.Repositories.Repositories
+namespace Repositories.Repositories
 {
 
-    public partial interface IFlightRouteRepository :IBaseRepository<FlightRoute>
+    public partial interface IFlightRouteRepository : IBaseRepository<FlightRoute>
     {
     }
-    public partial class FlightRouteRepository :BaseRepository<FlightRoute>, IFlightRouteRepository
+    public partial class FlightRouteRepository : BaseRepository<FlightRoute>, IFlightRouteRepository
     {
-         public FlightRouteRepository(DbContext dbContext) : base(dbContext)
-         {
-         }
+        public FlightRouteRepository(DbContext dbContext) : base(dbContext)
+        {
+        }
     }
 }
 

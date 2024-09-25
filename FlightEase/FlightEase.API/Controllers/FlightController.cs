@@ -1,6 +1,7 @@
 using BusinessObjects.DTOs;
 using FlightEase.Services.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
 namespace FlightEase.Presentation.Controllers
 {
 
@@ -80,6 +81,12 @@ namespace FlightEase.Presentation.Controllers
             }
             return flightUpdated;
         }
+      /*  [EnableQuery]
+        [HttpGet]
+        public IQueryable<FlightDTO> SearchFlights()
+        {
+            return _flightService.SearchFlight();
+        }*/
     }
 
 }

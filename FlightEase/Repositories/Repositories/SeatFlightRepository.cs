@@ -3,16 +3,17 @@ using BusinessObjects.Entities;
 using Microsoft.EntityFrameworkCore;
 using Repositories.Repositories.BaseRepository;
 
-namespace FlightEaseDB.Repositories.Repositories { 
+namespace Repositories.Repositories
+{
 
-    public partial interface ISeatFlightRepository :IBaseRepository<SeatFlight>
+    public partial interface ISeatFlightRepository : IBaseRepository<SeatFlight>
     {
     }
-    public partial class SeatFlightRepository :BaseRepository<SeatFlight>, ISeatFlightRepository
+    public partial class SeatFlightRepository : BaseRepository<SeatFlight>, ISeatFlightRepository
     {
-         public SeatFlightRepository(DbContext dbContext) : base(dbContext)
-         {
-         }
+        public SeatFlightRepository(DbContext dbContext) : base(dbContext)
+        {
+        }
     }
 }
 

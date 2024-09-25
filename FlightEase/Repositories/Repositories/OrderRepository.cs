@@ -3,17 +3,17 @@ using BusinessObjects.Entities;
 using Microsoft.EntityFrameworkCore;
 using Repositories.Repositories.BaseRepository;
 
-namespace FlightEaseDB.Repositories.Repositories
+namespace Repositories.Repositories
 {
 
-    public partial interface IOrderRepository :IBaseRepository<Order>
+    public partial interface IOrderRepository : IBaseRepository<Order>
     {
     }
-    public partial class OrderRepository :BaseRepository<Order>, IOrderRepository
+    public partial class OrderRepository : BaseRepository<Order>, IOrderRepository
     {
-         public OrderRepository(DbContext dbContext) : base(dbContext)
-         {
-         }
+        public OrderRepository(DbContext dbContext) : base(dbContext)
+        {
+        }
     }
 }
 

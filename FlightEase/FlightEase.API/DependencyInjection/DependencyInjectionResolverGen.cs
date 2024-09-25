@@ -1,11 +1,7 @@
-
-
-using BusinessObjects.Entities;
 using FlightEase.Services.Services;
 using FlightEaseDB.BusinessLogic.Services;
-using FlightEaseDB.Repositories.Repositories;
 using FlightEaseDB.Services.Services;
-using Microsoft.EntityFrameworkCore;
+using Repositories.Repositories;
 
 namespace FlightEaseDB.BusinessLogic.Generations.DependencyInjection
 {
@@ -13,8 +9,7 @@ namespace FlightEaseDB.BusinessLogic.Generations.DependencyInjection
     {
         public static void InitializerDependencyInjection(this IServiceCollection services)
         {
-            services.AddScoped<DbContext, FlightEaseDbContext>();
-        
+
             services.AddScoped<IFlightService, FlightService>();
             services.AddScoped<IFlightRepository, FlightRepository>();
         

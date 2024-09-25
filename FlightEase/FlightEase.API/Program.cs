@@ -1,4 +1,7 @@
+using FlightEase.API.OdataConfiguration;
 using FlightEaseDB.BusinessLogic.Generations.DependencyInjection;
+using Microsoft.AspNetCore.OData;
+using Repositories.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +12,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.InitializerDependencyInjection();
+builder.Services.AddODataConfiguration();
+builder.Services.DependencyDBInit();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
