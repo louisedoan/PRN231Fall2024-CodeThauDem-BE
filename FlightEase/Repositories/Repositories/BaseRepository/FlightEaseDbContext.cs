@@ -1,7 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using BusinessObjects.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
-namespace BusinessObjects.Entities;
+namespace Repositories.Repositories.BaseRepository;
 
 public partial class FlightEaseDbContext : DbContext
 {

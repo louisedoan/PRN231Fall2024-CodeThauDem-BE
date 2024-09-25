@@ -1,5 +1,5 @@
 using BusinessObjects.DTOs;
-using FlightEaseDB.Repositories.Repositories;
+using Repositories.Repositories;
 
 namespace FlightEaseDB.BusinessLogic.Services
 {

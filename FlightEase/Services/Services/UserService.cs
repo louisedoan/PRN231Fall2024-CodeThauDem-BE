@@ -1,5 +1,5 @@
 using BusinessObjects.DTOs;
-using FlightEaseDB.Repositories.Repositories;
+using Repositories.Repositories;
 
 namespace FlightEaseDB.BusinessLogic.Services
 {
@@ -38,7 +38,12 @@ namespace FlightEaseDB.BusinessLogic.Services
 
         public List<UserDTO> GetAll() 
         {
-            throw new NotImplementedException();
+            var users = _userRepository.Get().ToList();
+            var user = users.Select(user => new UserDTO
+            {
+                UserId = user.UserId,
+            }).ToList();
+            return user;
         }
 
         public UserDTO GetById(int idTmp) 

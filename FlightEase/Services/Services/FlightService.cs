@@ -1,5 +1,5 @@
 using BusinessObjects.DTOs;
-using FlightEaseDB.Repositories.Repositories;
+using Repositories.Repositories;
 
 namespace FlightEase.Services.Services
 {
@@ -10,6 +10,7 @@ namespace FlightEase.Services.Services
         public bool DeleteFlight(int idTmp);
         public List<FlightDTO> GetAll();
         public FlightDTO GetById(int idTmp);
+        public IQueryable<FlightDTO> SearchFlight();
     }
 
     public class FlightService : IFlightService {
@@ -45,7 +46,23 @@ namespace FlightEase.Services.Services
         {
             throw new NotImplementedException();
         }
+        public IQueryable<FlightDTO> SearchFlight()
+        {
+            var flights = _flightRepository.Get().AsQueryable(); 
 
+        
+            var flightDTOs = flights.Select(flight => new FlightDTO
+            {
+                FlightId = flight.FlightId,
+                FlightNumber = flight.FlightNumber,
+                DepartureTime = flight.DepartureTime,
+                ArrivalTime = flight.ArrivalTime,
+                FlightStatus = flight.FlightStatus,
+                EmptySeat = flight.EmptySeat
+            });
+
+            return flightDTOs;
+        }
     }
 
 }
