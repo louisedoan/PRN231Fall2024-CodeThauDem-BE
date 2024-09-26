@@ -1,8 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Repositories.Repositories.BaseRepository;
 
-namespace Repositories.Repositories
+namespace Repositories.Repositories.BaseRepository
 {
     public static class DependencyDB
     {
