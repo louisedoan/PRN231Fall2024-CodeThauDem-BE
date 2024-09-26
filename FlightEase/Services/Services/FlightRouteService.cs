@@ -4,29 +4,31 @@ using Repositories.Repositories;
 namespace FlightEaseDB.Services.Services
 {
 
-    public interface IFlightRouteService {
-        public FlightRouteDTO CreateFlightRoute(FlightRouteDTO flightrouteCreate);
+    public interface IFlightRouteService
+    {
+        public Task<ResultModel> CreateFlightRoute(FlightRouteDTO flightrouteCreate);
         public FlightRouteDTO UpdateFlightRoute(FlightRouteDTO flightrouteUpdate);
         public bool DeleteFlightRoute(int idTmp);
         public List<FlightRouteDTO> GetAll();
         public FlightRouteDTO GetById(int idTmp);
     }
 
-    public class FlightRouteService : IFlightRouteService {
+    public class FlightRouteService : IFlightRouteService
+    {
 
-      private readonly IFlightRouteRepository _flightrouteRepository;
+        private readonly IFlightRouteRepository _flightrouteRepository;
 
         public FlightRouteService(IFlightRouteRepository flightrouteRepository)
         {
             _flightrouteRepository = flightrouteRepository;
         }
 
-        public FlightRouteDTO CreateFlightRoute(FlightRouteDTO flightrouteCreate)
+        public async Task<ResultModel> CreateFlightRoute(FlightRouteDTO flightrouteCreate)
         {
             throw new NotImplementedException();
         }
 
-        public FlightRouteDTO UpdateFlightRoute(FlightRouteDTO flightrouteUpdate) 
+        public FlightRouteDTO UpdateFlightRoute(FlightRouteDTO flightrouteUpdate)
         {
             throw new NotImplementedException();
         }
@@ -36,12 +38,12 @@ namespace FlightEaseDB.Services.Services
             throw new NotImplementedException();
         }
 
-        public List<FlightRouteDTO> GetAll() 
+        public List<FlightRouteDTO> GetAll()
         {
             throw new NotImplementedException();
         }
 
-        public FlightRouteDTO GetById(int idTmp) 
+        public FlightRouteDTO GetById(int idTmp)
         {
             throw new NotImplementedException();
         }
