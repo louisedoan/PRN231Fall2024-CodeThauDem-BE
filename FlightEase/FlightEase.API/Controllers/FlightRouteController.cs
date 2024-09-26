@@ -8,11 +8,12 @@ namespace FlightEaseDB.Presentation.Controllers
     [ApiController]
     [ApiVersion("1")]
     [Route("/api/v1/flightroutes")]
-    public class FlightRouteController : ControllerBase {
+    public class FlightRouteController : ControllerBase
+    {
 
         private IFlightRouteService _flightrouteService;
 
-         public FlightRouteController(IFlightRouteService flightrouteService)
+        public FlightRouteController(IFlightRouteService flightrouteService)
         {
             _flightrouteService = flightrouteService;
         }
@@ -27,7 +28,7 @@ namespace FlightEaseDB.Presentation.Controllers
             {
                 return NotFound("");
             }
-            return flightrouteCreated;
+            return null;
         }
 
         [MapToApiVersion("1")]
