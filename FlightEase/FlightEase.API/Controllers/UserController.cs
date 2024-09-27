@@ -112,7 +112,7 @@ namespace FlightEaseDB.Presentation.Controllers
         public async Task<IActionResult> Login([FromBody] LoginDTO userDto)
         {
 
-            var result = await _userService.AuthenticateAsync(userDto.Email, userDto.Password);
+            var result = await _userService.AuthenticateAsync(userDto);
 
             if (!result.IsSuccess)
             {
