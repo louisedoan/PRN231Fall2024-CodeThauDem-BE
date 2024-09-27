@@ -1,6 +1,9 @@
 using BusinessObjects.DTOs;
+using BusinessObjects.Entities;
 using FlightEaseDB.BusinessLogic.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
 
 namespace FlightEaseDB.Presentation.Controllers
 {
@@ -8,7 +11,7 @@ namespace FlightEaseDB.Presentation.Controllers
     [ApiController]
     [ApiVersion("1")]
     [Route("/api/v1/seats")]
-    public class SeatController : ControllerBase {
+    public class SeatController : ODataController {
 
         private ISeatService _seatService;
 
@@ -71,15 +74,44 @@ namespace FlightEaseDB.Presentation.Controllers
 
         [MapToApiVersion("1")]
         [HttpPut]
-        public ActionResult<SeatDTO> UpdateSeat(SeatDTO seatCreate)
+        public ActionResult<SeatDTO> UpdateSeat(SeatDTO seatUpdate)
         {
-            var seatUpdated = _seatService.UpdateSeat(seatCreate);
-
-            if (seatUpdated == null)
+            try
             {
-                return NotFound("");
+           
+                var seatUpdated = _seatService.UpdateSeat(seatUpdate);
+
+                if (seatUpdated == null)
+                {
+                    return NotFound("Seat not found or update failed.");
+                }
+            
+                return Ok(new { message = "Update successful" , seatUpdate});
             }
-            return seatUpdated;
+            catch (Exception ex)
+            {       
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+        [MapToApiVersion("1")]
+        [EnableQuery]
+        [HttpGet("query")]
+        public ActionResult<List<SeatDTO>> GetSeats(ODataQueryOptions<SeatDTO> queryOptions, [FromQuery] string classFilter = null, [FromQuery] int? planeId = null)
+        {
+
+            var seats = _seatService.GetAll();
+
+            if (!string.IsNullOrEmpty(classFilter))
+            {
+                seats = seats.Where(s => s.Class.Contains(classFilter, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+
+            if (planeId.HasValue)
+            {
+                seats = seats.Where(s => s.PlaneId == planeId.Value).ToList();
+            }
+
+            return Ok(seats);
         }
     }
 

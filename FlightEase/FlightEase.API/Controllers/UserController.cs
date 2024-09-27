@@ -1,3 +1,4 @@
+
 using BusinessObjects.DTOs;
 using FlightEaseDB.BusinessLogic.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -106,7 +107,45 @@ namespace FlightEaseDB.Presentation.Controllers
 
 			return Ok(new { message = "User updated successfully", data = updatedUser });
 		}
+
+
+		[HttpPost("register")]
+		public async Task<IActionResult> AddUser([FromBody] RegisterDTO userDto)
+		{
+			try
+			{
+				var result = await _userService.Register(userDto);
+				if (!result.IsSuccess)
+				{
+					return BadRequest("Email already exists.");
+				}
+
+				return Ok("User created successfully.");
+			}
+			catch (ArgumentException ex)
+			{
+				return BadRequest(ex.Message); // Trả về thông báo lỗi định dạng email
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred."); // Trả về lỗi chung
+			}
+		}
+
+		[HttpPost("login")]
+		public async Task<IActionResult> Login([FromBody] LoginDTO userDto)
+		{
+
+			var result = await _userService.AuthenticateAsync(userDto);
+
+			if (!result.IsSuccess)
+			{
+				return StatusCode(result.StatusCode, new { message = result.Message });
+			}
+
+			return Ok(result.Data);
+		}
 	}
-
-
 }
+
+

@@ -10,6 +10,7 @@ namespace FlightEaseDB.BusinessLogic.Services
         public bool DeleteSeat(int idTmp);
         public List<SeatDTO> GetAll();
         public SeatDTO GetById(int idTmp);
+      
     }
 
     public class SeatService : ISeatService {
@@ -28,7 +29,17 @@ namespace FlightEaseDB.BusinessLogic.Services
 
         public SeatDTO UpdateSeat(SeatDTO seatUpdate) 
         {
-            throw new NotImplementedException();
+            var exitSeat = _seatRepository.Get().SingleOrDefault(x => x.SeatId == seatUpdate.SeatId);
+            if (exitSeat != null) {
+                exitSeat.SeatNumber = seatUpdate.SeatNumber;
+                exitSeat.Status = seatUpdate.Status;
+                exitSeat.Class = seatUpdate.Class;
+                
+                _seatRepository.Update(exitSeat);
+                _seatRepository.Save();
+                return seatUpdate;
+            }
+            throw new Exception("Seat not found.");
         }
 
         public bool DeleteSeat(int idTmp)
@@ -38,7 +49,16 @@ namespace FlightEaseDB.BusinessLogic.Services
 
         public List<SeatDTO> GetAll() 
         {
-            throw new NotImplementedException();
+            var seats = _seatRepository.Get().ToList();
+            var seatDTOs = seats.Select(seat => new SeatDTO
+            {
+                SeatId = seat.SeatId,
+                SeatNumber = seat.SeatNumber,
+                Class = seat.Class,
+                Status = seat.Status,
+                PlaneId = seat.PlaneId
+            }).ToList();
+            return seatDTOs;
         }
 
         public SeatDTO GetById(int idTmp) 
