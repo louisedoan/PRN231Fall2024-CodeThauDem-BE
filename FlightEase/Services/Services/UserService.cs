@@ -15,7 +15,7 @@ namespace FlightEaseDB.BusinessLogic.Services
         public UserDTO GetById(int idTmp);
 
         public Task<ResultModel> Register(RegisterDTO userRegister);
-        public Task<ResultModel> AuthenticateAsync(string email, string password);
+        public Task<ResultModel> AuthenticateAsync(LoginDTO userLogin);
     }
 
     public class UserService : IUserService
@@ -42,7 +42,7 @@ namespace FlightEaseDB.BusinessLogic.Services
             try
             {
                 // Check if user already exists
-                var existingUser = await _userRepository.GetUserByEmailAsync(userRegister.Email);
+                var existingUser = await _userRepository.FirstOrDefaultAsync(u => u.Email == userRegister.Email); ;
                 if (existingUser != null)
                 {
                     result.IsSuccess = false;
@@ -60,7 +60,8 @@ namespace FlightEaseDB.BusinessLogic.Services
 
                 };
 
-                await _userRepository.AddUserAsync(newUser);
+                await _userRepository.CreateAsync(newUser);
+                await _userRepository.SaveAsync();
 
                 result.IsSuccess = true;
                 result.StatusCode = 201;
@@ -83,15 +84,15 @@ namespace FlightEaseDB.BusinessLogic.Services
         #endregion
 
         #region Login
-        public async Task<ResultModel> AuthenticateAsync(string email, string password)
+        public async Task<ResultModel> AuthenticateAsync(LoginDTO userLogin)
         {
             var result = new ResultModel();
 
             try
             {
-                var user = await _userRepository.GetUserByEmailAsync(email);
+                var user = await _userRepository.FirstOrDefaultAsync(u => u.Email == userLogin.Email);
                
-                if (user != null && user.Password == password)
+                if (user != null && user.Password == userLogin.Password)
                 {
                     // Generate JWT token using the extracted User object
                     var token = _jwtTokenHelper.GenerateJwtToken(user);
@@ -102,8 +103,8 @@ namespace FlightEaseDB.BusinessLogic.Services
                     result.Data = new
                     {
                         Token = token,
-                        Email = email,
-                        Password = password,
+                        Email = userLogin.Email,
+                        Password = userLogin.Password,
                         Role = user.Role
                     };
                 }
