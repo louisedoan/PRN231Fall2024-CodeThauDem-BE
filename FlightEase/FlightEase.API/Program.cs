@@ -51,6 +51,17 @@ builder.Services.InitializerDependencyInjection();
 builder.Services.AddODataConfiguration();
 builder.Services.DependencyDBInit();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigins",
+        builder =>
+        {
+            builder.WithOrigins("http://localhost:3000") 
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
+        });
+});
+
 
 
 
@@ -98,6 +109,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseAuthorization();
+app.UseCors("AllowSpecificOrigins");
+
 
 app.UseAuthentication();
 
