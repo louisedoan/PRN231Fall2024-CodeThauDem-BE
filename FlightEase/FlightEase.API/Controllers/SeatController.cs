@@ -96,14 +96,14 @@ namespace FlightEaseDB.Presentation.Controllers
         [MapToApiVersion("1")]
         [EnableQuery]
         [HttpGet("query")]
-        public ActionResult<List<SeatDTO>> GetSeats(/*ODataQueryOptions<SeatDTO> queryOptions,*/ [FromQuery] string classFilter = null, [FromQuery] int? planeId = null)
+        public ActionResult<List<SeatDTO>> GetSeats(ODataQueryOptions<SeatDTO> queryOptions, [FromQuery] string classFilter = null, [FromQuery] int? planeId = null)
         {
 
             var seats = _seatService.GetAll();
 
             if (!string.IsNullOrEmpty(classFilter))
             {
-                seats = seats.Where(s => s.Class == classFilter).ToList();
+                seats = seats.Where(s => s.Class.Contains(classFilter, StringComparison.OrdinalIgnoreCase)).ToList();
             }
 
             if (planeId.HasValue)

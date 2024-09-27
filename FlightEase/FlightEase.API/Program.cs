@@ -14,6 +14,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "FlightEase API", Version = "v1" });
+    c.OperationFilter<ODataQueryOptionsOperationFilter>();
 });
 builder.Services.InitializerDependencyInjection();
 builder.Services.AddODataConfiguration();
