@@ -19,69 +19,63 @@ namespace FlightEaseDB.Presentation.Controllers
         }
 
         [MapToApiVersion("1")]
-        [HttpPost]
-        public ActionResult<FlightRouteDTO> CreateFlightRoute(FlightRouteDTO flightrouteCreate)
+        [HttpPost("create-location")]
+        public async Task<ActionResult<FlightRouteDTO>> CreateFlightLocation(FlightRouteDTO flightRoute)
         {
-            var flightrouteCreated = _flightrouteService.CreateFlightRoute(flightrouteCreate);
-
-            if (flightrouteCreated == null)
+            var result = await _flightrouteService.CreateLocation(flightRoute);
+            if (result.IsSuccess)
             {
-                return NotFound("");
+                return Ok(result);
             }
-            return null;
+            return BadRequest(result);
         }
 
         [MapToApiVersion("1")]
-        [HttpGet]
-        public ActionResult<List<FlightRouteDTO>> GetAll()
+        [HttpPut("update")]
+        public async Task<ActionResult<ResultModel>> UpdateFlightRoute(FlightRouteUpdateDTO location)
         {
-            var flightrouteList = _flightrouteService.GetAll();
-
-            if (flightrouteList == null)
+            var result = await _flightrouteService.UpdateLocation(location);
+            if (result.IsSuccess)
             {
-                return NotFound("");
+                return Ok(result);
             }
-            return flightrouteList;
+            return BadRequest(result);
         }
 
         [MapToApiVersion("1")]
-        [HttpGet("idTmp")]
-        public ActionResult<FlightRouteDTO> GetById(int idTmp)
+        [HttpDelete("delete-location")]
+        public async Task<ActionResult<ResultModel>> DeleteFlightRoute(int locationId)
         {
-            var flightrouteDetail = _flightrouteService.GetById(idTmp);
-
-            if (flightrouteDetail == null)
+            var result = await _flightrouteService.DeleteLocation(locationId);
+            if (result.IsSuccess)
             {
-                return NotFound("");
+                return Ok(result);
             }
-            return flightrouteDetail;
+            return NotFound(result);
         }
 
         [MapToApiVersion("1")]
-        [HttpDelete]
-        public ActionResult<bool> DeleteFlightRoute(int idTmp)
+        [HttpGet("get-all")]
+        public async Task<ActionResult<ResultModel>> GetAll()
         {
-            var check = _flightrouteService.DeleteFlightRoute(idTmp);
-
-            if (check == false)
+            var result = await _flightrouteService.GetAll();
+            if (result.IsSuccess)
             {
-                return NotFound("");
+                return Ok(result);
             }
-            return check;
+            return NotFound(result);
         }
 
         [MapToApiVersion("1")]
-        [HttpPut]
-        public ActionResult<FlightRouteDTO> UpdateFlightRoute(FlightRouteDTO flightrouteCreate)
+        [HttpGet("id")]
+        public async Task<ActionResult<ResultModel>> GetById(int idTmp)
         {
-            var flightrouteUpdated = _flightrouteService.UpdateFlightRoute(flightrouteCreate);
-
-            if (flightrouteUpdated == null)
+            var result = await _flightrouteService.GetById(idTmp);
+            if (result.IsSuccess)
             {
-                return NotFound("");
+                return Ok(result);
             }
-            return flightrouteUpdated;
+            return NotFound(result);
         }
     }
-
 }
