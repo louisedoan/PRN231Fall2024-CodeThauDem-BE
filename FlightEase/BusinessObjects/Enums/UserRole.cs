@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace BusinessObjects.Enums
 {
-    internal class UserEnum
+    public enum UserRole
     {
+        Member ,
+        Manager ,
+        Admin 
     }
 }

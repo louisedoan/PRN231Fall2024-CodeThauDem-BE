@@ -1,8 +1,15 @@
-using FlightEase.API.OdataConfiguration;
+﻿using FlightEase.API.OdataConfiguration;
 using FlightEaseDB.BusinessLogic.Generations.DependencyInjection;
 using Microsoft.AspNetCore.OData;
 using Microsoft.OpenApi.Models;
 using Repositories.Repositories.BaseRepository;
+using Microsoft.AspNetCore.OData;
+using Repositories.Repositories;
+using Repositories.Repositories.BaseRepository;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Services.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 

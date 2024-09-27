@@ -1,6 +1,9 @@
-using BusinessObjects.DTOs;
+﻿using BusinessObjects.DTOs;
+using BusinessObjects.Entities;
 using FlightEaseDB.BusinessLogic.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Services.Helpers;
 
 namespace FlightEaseDB.Presentation.Controllers
 {
@@ -11,10 +14,10 @@ namespace FlightEaseDB.Presentation.Controllers
     public class UserController : ControllerBase {
 
         private IUserService _userService;
-
-         public UserController(IUserService userService)
+       
+        public UserController(IUserService userService)
         {
-            _userService = userService;
+            _userService = userService; 
         }
 
         [MapToApiVersion("1")]
@@ -80,6 +83,43 @@ namespace FlightEaseDB.Presentation.Controllers
                 return NotFound("");
             }
             return userUpdated;
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> AddUser([FromBody] RegisterDTO userDto)
+        {
+            try
+            {
+                var result = await _userService.Register(userDto);
+                if (!result.IsSuccess)
+                {
+                    return BadRequest("Email already exists.");
+                }
+
+                return Ok("User created successfully.");
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message); // Trả về thông báo lỗi định dạng email
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred."); // Trả về lỗi chung
+            }
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDTO userDto)
+        {
+
+            var result = await _userService.AuthenticateAsync(userDto.Email, userDto.Password);
+
+            if (!result.IsSuccess)
+            {
+                return StatusCode(result.StatusCode, new { message = result.Message });
+            }
+
+            return Ok(result.Data);
         }
     }
 
