@@ -9,7 +9,7 @@ public partial class FlightRoute
 
     public string? Location { get; set; }
 
-    public string? Duration { get; set; }
+    public virtual ICollection<Flight> FlightArrivalLocationNavigations { get; set; } = new List<Flight>();
 
-    public virtual ICollection<Flight> Flights { get; set; } = new List<Flight>();
+    public virtual ICollection<Flight> FlightDepartureLocationNavigations { get; set; } = new List<Flight>();
 }

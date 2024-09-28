@@ -1,0 +1,118 @@
+CREATE TABLE Plane (
+    PlaneID INT IDENTITY(1,1) PRIMARY KEY,
+    PlaneCode VARCHAR(50)
+);
+
+CREATE TABLE Seat (
+    SeatID INT IDENTITY(1,1) PRIMARY KEY,
+    SeatNumber INT,
+    Class VARCHAR(50),
+    Status VARCHAR(50),
+    PlaneID INT,
+    FOREIGN KEY (PlaneID) REFERENCES Plane(PlaneID)
+);
+
+CREATE TABLE Pilot (
+    PilotID INT IDENTITY(1,1) PRIMARY KEY,
+    Name VARCHAR(100)
+);
+
+CREATE TABLE FlightRoute (
+    FlightRouteID INT IDENTITY(1,1) PRIMARY KEY,
+    Location VARCHAR(100)
+);
+
+CREATE TABLE Flight (
+    FlightID INT IDENTITY(1,1) PRIMARY KEY,
+    PilotID INT,
+    FlightNumber INT,
+    DepartureLocation INT,
+    DepartureTime DATETIME,
+    ArrivalLocation INT,
+    ArrivalTime DATETIME,
+    FlightStatus VARCHAR(50),
+    EmptySeat INT,
+    FOREIGN KEY (PilotID) REFERENCES Pilot(PilotID),
+    FOREIGN KEY (DepartureLocation) REFERENCES FlightRoute(FlightRouteID),
+    FOREIGN KEY (ArrivalLocation) REFERENCES FlightRoute(FlightRouteID)
+);
+
+CREATE TABLE Pilot_Flight (
+    PilotID INT,
+    FlightID INT,
+    PRIMARY KEY (PilotID, FlightID),
+    FOREIGN KEY (PilotID) REFERENCES Pilot(PilotID),
+    FOREIGN KEY (FlightID) REFERENCES Flight(FlightID)
+);
+
+CREATE TABLE Seat_Flight (
+    SeatID INT,
+    FlightID INT,
+    Status VARCHAR(50),
+    PRIMARY KEY (SeatID, FlightID),
+    FOREIGN KEY (SeatID) REFERENCES Seat(SeatID),
+    FOREIGN KEY (FlightID) REFERENCES Flight(FlightID)
+);
+ CREATE TABLE Membership (
+    MembershipID INT IDENTITY(1,1) PRIMARY KEY,
+    Rank VARCHAR(50),
+    Discount FLOAT
+);
+CREATE TABLE [User] (
+    UserID INT IDENTITY(1,1) PRIMARY KEY,
+    Email VARCHAR(100),
+    Password VARCHAR(100),
+    Gender VARCHAR(10),
+    Nationality VARCHAR(50),
+    Address VARCHAR(255),
+    Fullname VARCHAR(100),
+    DOB DATETIME,
+    Role VARCHAR(50),
+    MembershipID INT,
+    Status VARCHAR(50),
+    FOREIGN KEY (MembershipID) REFERENCES Membership(MembershipID)
+);
+
+
+
+CREATE TABLE [Order] (
+    OrderID INT IDENTITY(1,1) PRIMARY KEY,
+    UserID INT,
+    OrderDate DATETIME,
+    TripType VARCHAR(50),
+    Status VARCHAR(50),
+    TotalPrice FLOAT,
+    FOREIGN KEY (UserID) REFERENCES [User](UserID)
+);
+
+CREATE TABLE OrderDetail (
+    OrderDetailID INT IDENTITY(1,1) PRIMARY KEY,
+    OrderID INT,
+    FlightID INT,
+    SeatID INT,
+    SeatNumber INT,
+    Status VARCHAR(50),
+    TotalAmount FLOAT,
+    FOREIGN KEY (OrderID) REFERENCES [Order](OrderID),
+    FOREIGN KEY (FlightID) REFERENCES Flight(FlightID),
+    FOREIGN KEY (SeatID) REFERENCES Seat(SeatID)
+);
+
+CREATE TABLE Payment (
+    PaymentID INT IDENTITY(1,1) PRIMARY KEY,
+    OrderDetailID INT,
+    PaymentDate DATETIME,
+    PaymentMethod VARCHAR(50),
+    Status VARCHAR(50),
+    Amount FLOAT,
+    FOREIGN KEY (OrderDetailID) REFERENCES OrderDetail(OrderDetailID)
+);
+
+CREATE TABLE RefreshToken (
+    TokenID INT IDENTITY(1,1) PRIMARY KEY,
+    UserID INT,
+    ExpireDate DATETIME,
+    CreateDate DATETIME,
+    UpdateDate DATETIME,
+    FOREIGN KEY (UserID) REFERENCES [User](UserID)
+);
