@@ -1,4 +1,5 @@
 using BusinessObjects.DTOs;
+using BusinessObjects.Entities;
 using Repositories.Repositories;
 
 namespace FlightEaseDB.BusinessLogic.Services
@@ -24,7 +25,24 @@ namespace FlightEaseDB.BusinessLogic.Services
 
         public SeatDTO CreateSeat(SeatDTO seatCreate)
         {
-            throw new NotImplementedException();
+            var seatEntity = new Seat
+            {
+                SeatNumber = seatCreate.SeatNumber,
+                Class = seatCreate.Class,
+                Status = seatCreate.Status,
+                PlaneId = seatCreate.PlaneId
+            };
+            _seatRepository.Create(seatEntity);
+            _seatRepository.Save();
+            var seatDTO = new SeatDTO
+            {
+                SeatId = seatEntity.SeatId, 
+                SeatNumber = seatEntity.SeatNumber,
+                Class = seatEntity.Class,
+                Status = seatEntity.Status,
+                PlaneId = seatEntity.PlaneId
+            };
+            return seatDTO;
         }
 
         public SeatDTO UpdateSeat(SeatDTO seatUpdate) 
