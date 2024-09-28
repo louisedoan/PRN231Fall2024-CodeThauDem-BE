@@ -28,9 +28,9 @@ namespace FlightEaseDB.Presentation.Controllers
 
             if (seatCreated == null)
             {
-                return NotFound("");
+                return NotFound("Create seat fail!");
             }
-            return seatCreated;
+            return Ok(new {message ="Create seat success!", seatCreated});
         }
 
         [MapToApiVersion("1")]
