@@ -10,6 +10,4 @@ public partial class Pilot
     public string? Name { get; set; }
 
     public virtual ICollection<Flight> Flights { get; set; } = new List<Flight>();
-
-    public virtual ICollection<Flight> FlightsNavigation { get; set; } = new List<Flight>();
 }

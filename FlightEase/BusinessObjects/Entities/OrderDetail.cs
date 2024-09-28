@@ -24,6 +24,4 @@ public partial class OrderDetail
     public virtual Order? Order { get; set; }
 
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
-
-    public virtual Seat? Seat { get; set; }
 }

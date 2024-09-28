@@ -56,7 +56,7 @@ public partial class FlightEaseDbContext : DbContext
     {
         modelBuilder.Entity<Flight>(entity =>
         {
-            entity.HasKey(e => e.FlightId).HasName("PK__Flight__8A9E148E78DE58C8");
+            entity.HasKey(e => e.FlightId).HasName("PK__Flight__8A9E148EEF6DF429");
 
             entity.ToTable("Flight");
 
@@ -83,7 +83,7 @@ public partial class FlightEaseDbContext : DbContext
 
         modelBuilder.Entity<FlightRoute>(entity =>
         {
-            entity.HasKey(e => e.FlightRouteId).HasName("PK__FlightRo__812C3CDCDC03B9E6");
+            entity.HasKey(e => e.FlightRouteId).HasName("PK__FlightRo__812C3CDCCE6D9FED");
 
             entity.ToTable("FlightRoute");
 
@@ -95,7 +95,7 @@ public partial class FlightEaseDbContext : DbContext
 
         modelBuilder.Entity<Membership>(entity =>
         {
-            entity.HasKey(e => e.MembershipId).HasName("PK__Membersh__92A78599199468C3");
+            entity.HasKey(e => e.MembershipId).HasName("PK__Membersh__92A7859988F34AE1");
 
             entity.ToTable("Membership");
 
@@ -107,7 +107,7 @@ public partial class FlightEaseDbContext : DbContext
 
         modelBuilder.Entity<Order>(entity =>
         {
-            entity.HasKey(e => e.OrderId).HasName("PK__Order__C3905BAF05E179BE");
+            entity.HasKey(e => e.OrderId).HasName("PK__Order__C3905BAF4231351D");
 
             entity.ToTable("Order");
 
@@ -123,12 +123,12 @@ public partial class FlightEaseDbContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__Order__UserID__5165187F");
+                .HasConstraintName("FK__Order__UserID__4D94879B");
         });
 
         modelBuilder.Entity<OrderDetail>(entity =>
         {
-            entity.HasKey(e => e.OrderDetailId).HasName("PK__OrderDet__D3B9D30C0F6831F1");
+            entity.HasKey(e => e.OrderDetailId).HasName("PK__OrderDet__D3B9D30C98F60916");
 
             entity.ToTable("OrderDetail");
 
@@ -142,20 +142,16 @@ public partial class FlightEaseDbContext : DbContext
 
             entity.HasOne(d => d.Flight).WithMany(p => p.OrderDetails)
                 .HasForeignKey(d => d.FlightId)
-                .HasConstraintName("FK__OrderDeta__Fligh__5535A963");
+                .HasConstraintName("FK__OrderDeta__Fligh__5165187F");
 
             entity.HasOne(d => d.Order).WithMany(p => p.OrderDetails)
                 .HasForeignKey(d => d.OrderId)
-                .HasConstraintName("FK__OrderDeta__Order__5441852A");
-
-            entity.HasOne(d => d.Seat).WithMany(p => p.OrderDetails)
-                .HasForeignKey(d => d.SeatId)
-                .HasConstraintName("FK__OrderDeta__SeatI__5629CD9C");
+                .HasConstraintName("FK__OrderDeta__Order__5070F446");
         });
 
         modelBuilder.Entity<Payment>(entity =>
         {
-            entity.HasKey(e => e.PaymentId).HasName("PK__Payment__9B556A58D7EE6017");
+            entity.HasKey(e => e.PaymentId).HasName("PK__Payment__9B556A582F2C65B1");
 
             entity.ToTable("Payment");
 
@@ -171,12 +167,12 @@ public partial class FlightEaseDbContext : DbContext
 
             entity.HasOne(d => d.OrderDetail).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.OrderDetailId)
-                .HasConstraintName("FK__Payment__OrderDe__59063A47");
+                .HasConstraintName("FK__Payment__OrderDe__5441852A");
         });
 
         modelBuilder.Entity<Pilot>(entity =>
         {
-            entity.HasKey(e => e.PilotId).HasName("PK__Pilot__B305516DDF7552FB");
+            entity.HasKey(e => e.PilotId).HasName("PK__Pilot__B305516D86614613");
 
             entity.ToTable("Pilot");
 
@@ -184,30 +180,11 @@ public partial class FlightEaseDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-
-            entity.HasMany(d => d.FlightsNavigation).WithMany(p => p.Pilots)
-                .UsingEntity<Dictionary<string, object>>(
-                    "PilotFlight",
-                    r => r.HasOne<Flight>().WithMany()
-                        .HasForeignKey("FlightId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__Pilot_Fli__Fligh__45F365D3"),
-                    l => l.HasOne<Pilot>().WithMany()
-                        .HasForeignKey("PilotId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__Pilot_Fli__Pilot__44FF419A"),
-                    j =>
-                    {
-                        j.HasKey("PilotId", "FlightId").HasName("PK__Pilot_Fl__4BACB0257C3463B0");
-                        j.ToTable("Pilot_Flight");
-                        j.IndexerProperty<int>("PilotId").HasColumnName("PilotID");
-                        j.IndexerProperty<int>("FlightId").HasColumnName("FlightID");
-                    });
         });
 
         modelBuilder.Entity<Plane>(entity =>
         {
-            entity.HasKey(e => e.PlaneId).HasName("PK__Plane__843E549C1786F719");
+            entity.HasKey(e => e.PlaneId).HasName("PK__Plane__843E549C9DF18F92");
 
             entity.ToTable("Plane");
 
@@ -219,7 +196,7 @@ public partial class FlightEaseDbContext : DbContext
 
         modelBuilder.Entity<RefreshToken>(entity =>
         {
-            entity.HasKey(e => e.TokenId).HasName("PK__RefreshT__658FEE8A2F441C4B");
+            entity.HasKey(e => e.TokenId).HasName("PK__RefreshT__658FEE8A7DE72183");
 
             entity.ToTable("RefreshToken");
 
@@ -231,12 +208,12 @@ public partial class FlightEaseDbContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.RefreshTokens)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__RefreshTo__UserI__5BE2A6F2");
+                .HasConstraintName("FK__RefreshTo__UserI__571DF1D5");
         });
 
         modelBuilder.Entity<Seat>(entity =>
         {
-            entity.HasKey(e => e.SeatId).HasName("PK__Seat__311713D396EA2728");
+            entity.HasKey(e => e.SeatId).HasName("PK__Seat__311713D38132F3AB");
 
             entity.ToTable("Seat");
 
@@ -256,7 +233,7 @@ public partial class FlightEaseDbContext : DbContext
 
         modelBuilder.Entity<SeatFlight>(entity =>
         {
-            entity.HasKey(e => new { e.SeatId, e.FlightId }).HasName("PK__Seat_Fli__C9BEF29BF91DAEB8");
+            entity.HasKey(e => new { e.SeatId, e.FlightId }).HasName("PK__Seat_Fli__C9BEF29B0EAC0827");
 
             entity.ToTable("Seat_Flight");
 
@@ -269,17 +246,17 @@ public partial class FlightEaseDbContext : DbContext
             entity.HasOne(d => d.Flight).WithMany(p => p.SeatFlights)
                 .HasForeignKey(d => d.FlightId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Seat_Flig__Fligh__49C3F6B7");
+                .HasConstraintName("FK__Seat_Flig__Fligh__45F365D3");
 
             entity.HasOne(d => d.Seat).WithMany(p => p.SeatFlights)
                 .HasForeignKey(d => d.SeatId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Seat_Flig__SeatI__48CFD27E");
+                .HasConstraintName("FK__Seat_Flig__SeatI__44FF419A");
         });
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__User__1788CCAC3E4AFB78");
+            entity.HasKey(e => e.UserId).HasName("PK__User__1788CCAC8ED78571");
 
             entity.ToTable("User");
 
@@ -315,7 +292,7 @@ public partial class FlightEaseDbContext : DbContext
 
             entity.HasOne(d => d.Membership).WithMany(p => p.Users)
                 .HasForeignKey(d => d.MembershipId)
-                .HasConstraintName("FK__User__Membership__4E88ABD4");
+                .HasConstraintName("FK__User__Membership__4AB81AF0");
         });
 
         OnModelCreatingPartial(modelBuilder);

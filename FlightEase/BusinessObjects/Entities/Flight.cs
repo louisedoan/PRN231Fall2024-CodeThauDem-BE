@@ -32,6 +32,4 @@ public partial class Flight
     public virtual Pilot? Pilot { get; set; }
 
     public virtual ICollection<SeatFlight> SeatFlights { get; set; } = new List<SeatFlight>();
-
-    public virtual ICollection<Pilot> Pilots { get; set; } = new List<Pilot>();
 }
