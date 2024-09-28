@@ -14,7 +14,9 @@ CREATE TABLE Seat (
 
 CREATE TABLE Pilot (
     PilotID INT IDENTITY(1,1) PRIMARY KEY,
-    Name VARCHAR(100)
+    Name VARCHAR(100),
+   
+
 );
 
 CREATE TABLE FlightRoute (
@@ -37,13 +39,6 @@ CREATE TABLE Flight (
     FOREIGN KEY (ArrivalLocation) REFERENCES FlightRoute(FlightRouteID)
 );
 
-CREATE TABLE Pilot_Flight (
-    PilotID INT,
-    FlightID INT,
-    PRIMARY KEY (PilotID, FlightID),
-    FOREIGN KEY (PilotID) REFERENCES Pilot(PilotID),
-    FOREIGN KEY (FlightID) REFERENCES Flight(FlightID)
-);
 
 CREATE TABLE Seat_Flight (
     SeatID INT,
@@ -95,7 +90,7 @@ CREATE TABLE OrderDetail (
     TotalAmount FLOAT,
     FOREIGN KEY (OrderID) REFERENCES [Order](OrderID),
     FOREIGN KEY (FlightID) REFERENCES Flight(FlightID),
-    FOREIGN KEY (SeatID) REFERENCES Seat(SeatID)
+    
 );
 
 CREATE TABLE Payment (
