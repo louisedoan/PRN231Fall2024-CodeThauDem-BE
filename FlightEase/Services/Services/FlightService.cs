@@ -1,4 +1,5 @@
 using BusinessObjects.DTOs;
+using BusinessObjects.Entities;
 using Repositories.Repositories;
 
 namespace FlightEase.Services.Services
@@ -37,9 +38,26 @@ namespace FlightEase.Services.Services
             throw new NotImplementedException();
         }
 
-        public List<FlightDTO> GetAll() 
+        public List<FlightDTO> GetAll()
         {
-            throw new NotImplementedException();
+            var flight = _flightRepository.Get().ToList();
+            var flightDTO = flight.Select(x => new FlightDTO
+            {
+                FlightId = x.FlightId,
+
+
+                PilotId = x.PilotId,
+                FlightNumber = x.FlightNumber,
+
+                DepartureTime = x.DepartureTime,
+
+                ArrivalTime = x.ArrivalTime,
+
+                FlightStatus = x.FlightStatus,
+                EmptySeat = x.EmptySeat,
+
+            }).ToList();
+            return flightDTO;
         }
 
         public FlightDTO GetById(int idTmp) 

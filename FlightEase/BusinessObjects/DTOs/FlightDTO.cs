@@ -8,7 +8,7 @@
 
         public int? FlightNumber { get; set; }
 
-        public int? FlightRouteId { get; set; }
+       // public int? FlightRouteId { get; set; }
 
         public DateTime? DepartureTime { get; set; }
 
