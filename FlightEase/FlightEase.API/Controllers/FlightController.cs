@@ -21,12 +21,13 @@ namespace FlightEase.Presentation.Controllers
         [HttpPost]
         public ActionResult<FlightDTO> CreateFlight(FlightDTO flightCreate)
         {
+            if (flightCreate == null)
+            {
+                return BadRequest("Invalid flight data");
+            }
             var flightCreated = _flightService.CreateFlight(flightCreate);
 
-            if (flightCreated == null)
-            {
-                return NotFound("");
-            }
+           
             return flightCreated;
         }
 
@@ -60,6 +61,7 @@ namespace FlightEase.Presentation.Controllers
         [HttpDelete]
         public ActionResult<bool> DeleteFlight(int idTmp)
         {
+
             var check = _flightService.DeleteFlight(idTmp);
 
             if (check == false)

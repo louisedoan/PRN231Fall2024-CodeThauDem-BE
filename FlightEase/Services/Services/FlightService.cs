@@ -5,7 +5,8 @@ using Repositories.Repositories;
 namespace FlightEase.Services.Services
 {
 
-    public interface IFlightService {
+    public interface IFlightService
+    {
         public FlightDTO CreateFlight(FlightDTO flightCreate);
         public FlightDTO UpdateFlight(FlightDTO flightUpdate);
         public bool DeleteFlight(int idTmp);
@@ -14,9 +15,10 @@ namespace FlightEase.Services.Services
         public IQueryable<FlightDTO> SearchFlight();
     }
 
-    public class FlightService : IFlightService {
+    public class FlightService : IFlightService
+    {
 
-      private readonly IFlightRepository _flightRepository;
+        private readonly IFlightRepository _flightRepository;
 
         public FlightService(IFlightRepository flightRepository)
         {
@@ -25,10 +27,36 @@ namespace FlightEase.Services.Services
 
         public FlightDTO CreateFlight(FlightDTO flightCreate)
         {
-            throw new NotImplementedException();
+            var flight = new Flight
+            {
+                FlightId = flightCreate.FlightId,
+                PilotId = flightCreate.PilotId,
+                FlightNumber = flightCreate.FlightNumber,
+                DepartureLocation = flightCreate.DepartureLocation,
+                DepartureTime = flightCreate.DepartureTime,
+                ArrivalLocation = flightCreate.ArrivalLocation,
+                ArrivalTime = flightCreate.ArrivalTime,
+                FlightStatus = flightCreate.FlightStatus,
+                EmptySeat = flightCreate.EmptySeat,
+            };
+            _flightRepository.Create(flight);
+            _flightRepository.Save();
+            var flightDTO = new FlightDTO
+            {
+                FlightId = flight.FlightId,
+                PilotId = flight.PilotId,
+                FlightNumber = flight.FlightNumber,
+                DepartureLocation = flight.DepartureLocation,
+                DepartureTime = flight.DepartureTime,
+                ArrivalLocation = flightCreate.ArrivalLocation,
+                ArrivalTime = flight.ArrivalTime,
+                FlightStatus = flight.FlightStatus,
+                EmptySeat = flight.EmptySeat,
+            };
+            return flightDTO;
         }
 
-        public FlightDTO UpdateFlight(FlightDTO flightUpdate) 
+        public FlightDTO UpdateFlight(FlightDTO flightUpdate)
         {
             throw new NotImplementedException();
         }
@@ -60,15 +88,15 @@ namespace FlightEase.Services.Services
             return flightDTO;
         }
 
-        public FlightDTO GetById(int idTmp) 
+        public FlightDTO GetById(int idTmp)
         {
             throw new NotImplementedException();
         }
         public IQueryable<FlightDTO> SearchFlight()
         {
-            var flights = _flightRepository.Get().AsQueryable(); 
+            var flights = _flightRepository.Get().AsQueryable();
 
-        
+
             var flightDTOs = flights.Select(flight => new FlightDTO
             {
                 FlightId = flight.FlightId,

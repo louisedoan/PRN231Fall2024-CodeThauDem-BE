@@ -8,14 +8,17 @@
 
         public int? FlightNumber { get; set; }
 
-       // public int? FlightRouteId { get; set; }
+        public int? DepartureLocation { get; set; }
 
         public DateTime? DepartureTime { get; set; }
+
+        public int? ArrivalLocation { get; set; }
 
         public DateTime? ArrivalTime { get; set; }
 
         public string? FlightStatus { get; set; }
 
         public int? EmptySeat { get; set; }
+
     }
 }
