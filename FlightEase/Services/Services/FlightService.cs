@@ -95,7 +95,16 @@ namespace FlightEase.Services.Services
 
         public bool DeleteFlight(int idTmp)
         {
-            throw new NotImplementedException();
+            var exitFlight = _flightRepository.Get().SingleOrDefault(x => x.FlightId == idTmp);
+            if (exitFlight == null)
+            {
+                return false;
+
+            }
+            _flightRepository.Delete(exitFlight);
+            _flightRepository.Save();
+            return true;
+               
         }
 
         public List<FlightDTO> GetAll()
@@ -104,15 +113,10 @@ namespace FlightEase.Services.Services
             var flightDTO = flight.Select(x => new FlightDTO
             {
                 FlightId = x.FlightId,
-
-
                 PilotId = x.PilotId,
                 FlightNumber = x.FlightNumber,
-
                 DepartureTime = x.DepartureTime,
-
                 ArrivalTime = x.ArrivalTime,
-
                 FlightStatus = x.FlightStatus,
                 EmptySeat = x.EmptySeat,
 
