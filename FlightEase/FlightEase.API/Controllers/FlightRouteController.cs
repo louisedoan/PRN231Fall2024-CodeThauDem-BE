@@ -44,9 +44,9 @@ namespace FlightEaseDB.Presentation.Controllers
 
         [MapToApiVersion("1")]
         [HttpDelete("delete-location")]
-        public async Task<ActionResult<ResultModel>> DeleteFlightRoute(int locationId)
+        public async Task<ActionResult<ResultModel>> DeleteFlightRoute(int flightRouteId)
         {
-            var result = await _flightrouteService.DeleteLocation(locationId);
+            var result = await _flightrouteService.DeleteLocation(flightRouteId);
             if (result.IsSuccess)
             {
                 return Ok(result);

@@ -19,10 +19,12 @@ namespace FlightEaseDB.Services.Services
     {
 
         private readonly IFlightRouteRepository _flightrouteRepository;
+        private readonly IFlightRepository _flightRepo;
 
-        public FlightRouteService(IFlightRouteRepository flightrouteRepository)
+        public FlightRouteService(IFlightRouteRepository flightrouteRepository, IFlightRepository flightRepo)
         {
             _flightrouteRepository = flightrouteRepository;
+            _flightRepo = flightRepo;
         }
 
         public async Task<ResultModel> CreateLocation(FlightRouteDTO flightRoute)
@@ -66,7 +68,9 @@ namespace FlightEaseDB.Services.Services
             ResultModel result = new ResultModel();
             try
             {
-                var existingLocation = await _flightrouteRepository.FirstOrDefaultAsync(l => l.FlightRouteId == location.FlightRouteId);
+                var existingLocation = await _flightrouteRepository
+                    .FirstOrDefaultAsync(l => l.FlightRouteId == location.FlightRouteId);
+
                 if (existingLocation == null)
                 {
                     result.Message = "Location does not exist";
@@ -74,6 +78,19 @@ namespace FlightEaseDB.Services.Services
                     result.StatusCode = 200;
                     return result;
                 }
+
+                var usedLocation = await _flightRepo
+                    .FirstOrDefaultAsync(l => l.DepartureLocation == location.FlightRouteId
+                     || l.ArrivalLocation == location.FlightRouteId);
+
+                if (usedLocation != null)
+                {
+                    result.Message = "Location is in use";
+                    result.IsSuccess = false;
+                    result.StatusCode = 200;
+                    return result;
+                }
+
                 existingLocation.Location = location.Location;
 
                 _flightrouteRepository.Update(existingLocation);
@@ -100,9 +117,18 @@ namespace FlightEaseDB.Services.Services
             try
             {
                 var location = await _flightrouteRepository.FirstOrDefaultAsync(l => l.FlightRouteId == locationId);
+                var usedLocation = await _flightRepo.FirstOrDefaultAsync(l => l.DepartureLocation == locationId
+                     || l.ArrivalLocation == locationId);
                 if (location == null)
                 {
                     result.Message = "Location not found";
+                    result.IsSuccess = false;
+                    result.StatusCode = 200;
+                    return result;
+                }
+                if (usedLocation != null)
+                {
+                    result.Message = "Location is in use";
                     result.IsSuccess = false;
                     result.StatusCode = 200;
                     return result;
