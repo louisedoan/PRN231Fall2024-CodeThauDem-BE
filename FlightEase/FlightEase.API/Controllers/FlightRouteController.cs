@@ -31,8 +31,8 @@ namespace FlightEaseDB.Presentation.Controllers
         }
 
         [MapToApiVersion("1")]
-        [HttpPut("update")]
-        public async Task<ActionResult<ResultModel>> UpdateFlightRoute(FlightRouteUpdateDTO location)
+        [HttpPut("update-location")]
+        public async Task<ActionResult<ResultModel>> UpdateFlightRoute(FlightRouteDTO location)
         {
             var result = await _flightrouteService.UpdateLocation(location);
             if (result.IsSuccess)

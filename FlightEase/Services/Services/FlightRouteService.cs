@@ -9,7 +9,7 @@ namespace FlightEaseDB.Services.Services
     public interface IFlightRouteService
     {
         public Task<ResultModel> CreateLocation(FlightRouteDTO flightRoute);
-        public Task<ResultModel> UpdateLocation(FlightRouteUpdateDTO location);
+        public Task<ResultModel> UpdateLocation(FlightRouteDTO location);
         public Task<ResultModel> DeleteLocation(int locationId);
         public Task<ResultModel> GetAll();
         public Task<ResultModel> GetById(int idTmp);
@@ -40,6 +40,7 @@ namespace FlightEaseDB.Services.Services
                     result.StatusCode = 200;
                     return result;
                 }
+
                 var newLocation = new FlightRoute
                 {
                     Location = flightRoute.Location
@@ -47,6 +48,8 @@ namespace FlightEaseDB.Services.Services
 
                 await _flightrouteRepository.CreateAsync(newLocation);
                 await _flightrouteRepository.SaveAsync();
+
+                flightRoute.FlightRouteId = newLocation.FlightRouteId;
 
                 result.Message = "Location created successfully";
                 result.IsSuccess = true;
@@ -63,7 +66,7 @@ namespace FlightEaseDB.Services.Services
             return result;
         }
 
-        public async Task<ResultModel> UpdateLocation(FlightRouteUpdateDTO location)
+        public async Task<ResultModel> UpdateLocation(FlightRouteDTO location)
         {
             ResultModel result = new ResultModel();
             try
@@ -119,6 +122,7 @@ namespace FlightEaseDB.Services.Services
                 var location = await _flightrouteRepository.FirstOrDefaultAsync(l => l.FlightRouteId == locationId);
                 var usedLocation = await _flightRepo.FirstOrDefaultAsync(l => l.DepartureLocation == locationId
                      || l.ArrivalLocation == locationId);
+
                 if (location == null)
                 {
                     result.Message = "Location not found";
@@ -156,16 +160,27 @@ namespace FlightEaseDB.Services.Services
             try
             {
                 var flightRoutes = await _flightrouteRepository.Get().ToListAsync();
-                var flightRouteDTOs = flightRoutes.Select(fr => new FlightRouteUpdateDTO
-                {
-                    FlightRouteId = fr.FlightRouteId,
-                    Location = fr.Location
-                }).ToList();
 
-                result.Message = "Flight routes retrieved successfully";
-                result.IsSuccess = true;
-                result.StatusCode = 200;
-                result.Data = flightRouteDTOs;
+                if (!flightRoutes.Any())
+                {
+                    result.Message = "No existing Location";
+                    result.IsSuccess = true;
+                    result.StatusCode = 200;
+                    result.Data = flightRoutes;
+                }
+                else
+                {
+                    var flightRouteDTOs = flightRoutes.Select(fr => new FlightRouteDTO
+                    {
+                        FlightRouteId = fr.FlightRouteId,
+                        Location = fr.Location
+                    }).ToList();
+
+                    result.Message = "Flight routes retrieved successfully";
+                    result.IsSuccess = true;
+                    result.StatusCode = 200;
+                    result.Data = flightRouteDTOs;
+                }
             }
             catch (Exception ex)
             {
