@@ -8,9 +8,15 @@
 
         public int? FlightNumber { get; set; }
 
-        public int? FlightRouteId { get; set; }
+        public int? DepartureLocation { get; set; } // Lưu ID của địa điểm khởi hành
+
+        public string? DepartureLocationName { get; set; } // Lưu tên địa điểm khởi hành
 
         public DateTime? DepartureTime { get; set; }
+
+        public int? ArrivalLocation { get; set; } // Lưu ID của địa điểm đến
+
+        public string? ArrivalLocationName { get; set; } // Lưu tên địa điểm đến
 
         public DateTime? ArrivalTime { get; set; }
 
