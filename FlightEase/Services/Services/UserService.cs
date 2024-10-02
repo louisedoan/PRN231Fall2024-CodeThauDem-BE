@@ -33,7 +33,7 @@ namespace FlightEaseDB.BusinessLogic.Services
 
 		public UserDTO CreateUser(UserDTO userCreate)
 		{
-			userCreate.Role = "Staff";
+			userCreate.Role = UserRole.Manager.ToString();
 			var user = new User
 			{
 				Email = userCreate.Email,
@@ -207,9 +207,9 @@ namespace FlightEaseDB.BusinessLogic.Services
 					result.Data = new
 					{
 						Token = token,
-						Email = userLogin.Email,
+						/*Email = userLogin.Email,
 						Password = userLogin.Password,
-						Role = user.Role
+						Role = user.Role*/
 					};
 				}
 				else
