@@ -69,8 +69,8 @@ namespace FlightEaseDB.Presentation.Controllers
             {
                 return NotFound("");
             }
-            return check;
-        }
+			return Ok(new { message = "Seat deleted successfully" });
+		}
 
         [MapToApiVersion("1")]
         [HttpPut]

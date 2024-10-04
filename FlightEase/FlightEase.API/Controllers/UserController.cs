@@ -90,10 +90,10 @@ namespace FlightEaseDB.Presentation.Controllers
 		// API: Update user by ID
 		// PUT: /api/v1/users/update/{idTmp}
 		[MapToApiVersion("1")]
-		[HttpPut("update/{idTmp}")]
-		public ActionResult<UserDTO> UpdateUser(int idTmp, [FromBody] UserDTO userUpdate)
+		[HttpPut("update")]
+		public ActionResult<UserDTO> UpdateUser(UserDTO userUpdate)
 		{
-			if (userUpdate == null || userUpdate.UserId != idTmp)
+			if (userUpdate == null)
 			{
 				return BadRequest("Invalid user data or ID mismatch");
 			}
@@ -102,7 +102,7 @@ namespace FlightEaseDB.Presentation.Controllers
 
 			if (updatedUser == null)
 			{
-				return NotFound($"User with ID {idTmp} not found");
+				return NotFound($"User not found");
 			}
 
 			return Ok(new { message = "User updated successfully", data = updatedUser });
