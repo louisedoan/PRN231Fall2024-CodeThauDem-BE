@@ -83,24 +83,29 @@ CREATE TABLE [Order] (
 CREATE TABLE OrderDetail (
     OrderDetailID INT IDENTITY(1,1) PRIMARY KEY,
     OrderID INT,
+    Name VARCHAR(100),
+    DoB DateTime,
+    Nationality VARCHAR(100),
+    Email VARCHAR(100),
     FlightID INT,
     SeatID INT,
     SeatNumber INT,
     Status VARCHAR(50),
     TotalAmount FLOAT,
     FOREIGN KEY (OrderID) REFERENCES [Order](OrderID),
-    FOREIGN KEY (FlightID) REFERENCES Flight(FlightID),
+    FOREIGN KEY (SeatID) REFERENCES Seat_Flight(SeatID)
+    FOREIGN KEY (FlightID) REFERENCES Seat_Flight(FlightID)
     
 );
 
 CREATE TABLE Payment (
     PaymentID INT IDENTITY(1,1) PRIMARY KEY,
-    OrderDetailID INT,
+    OrderID INT,
     PaymentDate DATETIME,
     PaymentMethod VARCHAR(50),
     Status VARCHAR(50),
     Amount FLOAT,
-    FOREIGN KEY (OrderDetailID) REFERENCES OrderDetail(OrderDetailID)
+    FOREIGN KEY (OrderID) REFERENCES [Order](OrderID)
 );
 
 CREATE TABLE RefreshToken (
