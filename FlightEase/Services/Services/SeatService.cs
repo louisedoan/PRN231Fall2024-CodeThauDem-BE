@@ -1,4 +1,4 @@
-using BusinessObjects.DTOs;
+﻿using BusinessObjects.DTOs;
 using BusinessObjects.Entities;
 using Repositories.Repositories;
 
@@ -62,8 +62,15 @@ namespace FlightEaseDB.BusinessLogic.Services
 
         public bool DeleteSeat(int idTmp)
         {
-            throw new NotImplementedException();
-        }
+			var seat = _seatRepository.Get(idTmp);
+			if (seat == null) return false;
+
+			// Gọi phương thức xóa từ BaseRepository
+			_seatRepository.Delete(seat);
+			_seatRepository.Save();
+
+			return true;
+		}
 
         public List<SeatDTO> GetAll() 
         {
@@ -81,8 +88,20 @@ namespace FlightEaseDB.BusinessLogic.Services
 
         public SeatDTO GetById(int idTmp) 
         {
-            throw new NotImplementedException();
-        }
+			// Gọi phương thức lấy đối tượng theo ID từ BaseRepository
+			var seat = _seatRepository.Get(idTmp);
+			if (seat == null) return null;
+
+			// Chuyển đổi entity sang DTO
+			return new SeatDTO
+			{
+				SeatId = seat.SeatId,
+                SeatNumber= seat.SeatNumber,
+                Class = seat.Class,
+                Status = seat.Status,
+                PlaneId = seat.PlaneId
+			};
+		}
 
     }
 
