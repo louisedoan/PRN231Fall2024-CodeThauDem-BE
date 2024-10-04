@@ -31,8 +31,8 @@ namespace FlightEaseDB.Presentation.Controllers
         }
 
         [MapToApiVersion("1")]
-        [HttpPut("update")]
-        public async Task<ActionResult<ResultModel>> UpdateFlightRoute(FlightRouteUpdateDTO location)
+        [HttpPut("update-location")]
+        public async Task<ActionResult<ResultModel>> UpdateFlightRoute(FlightRouteDTO location)
         {
             var result = await _flightrouteService.UpdateLocation(location);
             if (result.IsSuccess)
@@ -44,9 +44,9 @@ namespace FlightEaseDB.Presentation.Controllers
 
         [MapToApiVersion("1")]
         [HttpDelete("delete-location")]
-        public async Task<ActionResult<ResultModel>> DeleteFlightRoute(int locationId)
+        public async Task<ActionResult<ResultModel>> DeleteFlightRoute(int flightRouteId)
         {
-            var result = await _flightrouteService.DeleteLocation(locationId);
+            var result = await _flightrouteService.DeleteLocation(flightRouteId);
             if (result.IsSuccess)
             {
                 return Ok(result);

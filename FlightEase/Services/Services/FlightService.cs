@@ -1,5 +1,4 @@
-using BusinessObjects.DTOs;
-using BusinessObjects.Entities;
+﻿    using BusinessObjects.DTOs;
 using Repositories.Repositories;
 
 namespace FlightEase.Services.Services
@@ -12,17 +11,18 @@ namespace FlightEase.Services.Services
         public bool DeleteFlight(int idTmp);
         public List<FlightDTO> GetAll();
         public FlightDTO GetById(int idTmp);
-        public IQueryable<FlightDTO> SearchFlight();
+        public List<FlightDTO> SearchFlight();
     }
 
     public class FlightService : IFlightService
     {
 
         private readonly IFlightRepository _flightRepository;
-
-        public FlightService(IFlightRepository flightRepository)
+        private readonly IFlightRouteRepository _flightRouteRepository;
+        public FlightService(IFlightRepository flightRepository, IFlightRouteRepository flightRouteRepository)
         {
             _flightRepository = flightRepository;
+            _flightRouteRepository = flightRouteRepository;
         }
 
         public FlightDTO CreateFlight(FlightDTO flightCreate)
@@ -128,23 +128,36 @@ namespace FlightEase.Services.Services
         {
             throw new NotImplementedException();
         }
-        public IQueryable<FlightDTO> SearchFlight()
+        public List<FlightDTO> SearchFlight()
         {
-            var flights = _flightRepository.Get().AsQueryable();
+
+            var flights = _flightRepository.Get().ToList();
+            var flightRoutes = _flightRouteRepository.Get().ToList();
 
 
-            var flightDTOs = flights.Select(flight => new FlightDTO
-            {
-                FlightId = flight.FlightId,
-                FlightNumber = flight.FlightNumber,
-                DepartureTime = flight.DepartureTime,
-                ArrivalTime = flight.ArrivalTime,
-                FlightStatus = flight.FlightStatus,
-                EmptySeat = flight.EmptySeat
-            });
+            var flightDTOs = (from flight in flights
+                              join departureRoute in flightRoutes on flight.DepartureLocation equals departureRoute.FlightRouteId into departureGroup
+                              from departureRoute in departureGroup.DefaultIfEmpty()
+                              join arrivalRoute in flightRoutes on flight.ArrivalLocation equals arrivalRoute.FlightRouteId into arrivalGroup
+                              from arrivalRoute in arrivalGroup.DefaultIfEmpty() 
+                              select new FlightDTO
+                              {
+                                  FlightId = flight.FlightId,
+                                  PilotId = flight.PilotId,
+                                  FlightNumber = flight.FlightNumber,
+                                  DepartureLocation = flight.DepartureLocation,
+                                  DepartureLocationName = departureRoute?.Location ?? "Unknown",
+                                  DepartureTime = flight.DepartureTime,
+                                  ArrivalLocation = flight.ArrivalLocation,
+                                  ArrivalLocationName = arrivalRoute?.Location ?? "Unknown",
+                                  ArrivalTime = flight.ArrivalTime,
+                                  FlightStatus = flight.FlightStatus,
+                                  EmptySeat = flight.EmptySeat
+                              }).ToList();
 
             return flightDTOs;
         }
+
     }
 
 }

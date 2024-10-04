@@ -1,13 +1,8 @@
 ﻿namespace BusinessObjects.DTOs
 {
-    public class FlightRouteUpdateDTO
-    {
-        public int FlightRouteId { get; set; }
-        public string Location { get; set; }
-    }
-
     public class FlightRouteDTO
     {
+        public int FlightRouteId { get; set; }
         public string Location { get; set; }
     }
 }

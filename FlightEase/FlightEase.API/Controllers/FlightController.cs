@@ -8,11 +8,12 @@ namespace FlightEase.Presentation.Controllers
     [ApiController]
     [ApiVersion("1")]
     [Route("/api/v1/flights")]
-    public class FlightController : ControllerBase {
+    public class FlightController : ControllerBase
+    {
 
         private IFlightService _flightService;
 
-         public FlightController(IFlightService flightService)
+        public FlightController(IFlightService flightService)
         {
             _flightService = flightService;
         }
@@ -83,12 +84,24 @@ namespace FlightEase.Presentation.Controllers
             }
             return flightUpdated;
         }
-      /*  [EnableQuery]
-        [HttpGet]
-        public IQueryable<FlightDTO> SearchFlights()
+        [MapToApiVersion("1")]
+        [EnableQuery]
+        [HttpGet("query")]
+        public ActionResult<List<SeatDTO>> GetFlight(ODataQueryOptions<SeatDTO> queryOptions, [FromQuery] string departureTime = null)
         {
-            return _flightService.SearchFlight();
-        }*/
-    }
 
+            var seats = _flightService.SearchFlight();
+
+            if (!string.IsNullOrEmpty(departureTime))
+            {
+                seats = seats.Where(s => s.DepartureTime.HasValue &&
+                            s.DepartureTime.Value.ToString("yyyy-MM-dd").Contains(departureTime)).ToList();
+            }
+
+
+
+            return Ok(seats);
+        }
+
+    }
 }

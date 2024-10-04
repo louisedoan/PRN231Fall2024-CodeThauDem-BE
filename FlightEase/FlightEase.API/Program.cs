@@ -1,14 +1,11 @@
 ﻿using FlightEase.API.OdataConfiguration;
 using FlightEaseDB.BusinessLogic.Generations.DependencyInjection;
-using Microsoft.AspNetCore.OData;
-using Microsoft.OpenApi.Models;
-using Repositories.Repositories.BaseRepository;
-using Repositories.Repositories;
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Repositories.Repositories.BaseRepository;
 using Services.Helpers;
-using FlightEaseDB.BusinessLogic.Services;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "FlightEase API", Version = "v1" });
@@ -47,6 +45,7 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
+
 builder.Services.InitializerDependencyInjection();
 builder.Services.AddODataConfiguration();
 builder.Services.DependencyDBInit();
@@ -56,7 +55,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSpecificOrigins",
         builder =>
         {
-            builder.WithOrigins("http://localhost:3000") 
+            builder.WithOrigins("http://localhost:3000")
                    .AllowAnyHeader()
                    .AllowAnyMethod();
         });
@@ -86,7 +85,7 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(key),
-        RoleClaimType = "Role"  // Đảm bảo claim "Role" được nhận diện đúng
+        RoleClaimType = "Role"
 
     };
 });
