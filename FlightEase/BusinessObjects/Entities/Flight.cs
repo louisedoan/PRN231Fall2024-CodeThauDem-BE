@@ -27,8 +27,6 @@ public partial class Flight
 
     public virtual FlightRoute? DepartureLocationNavigation { get; set; }
 
-    public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
-
     public virtual Pilot? Pilot { get; set; }
 
     public virtual ICollection<SeatFlight> SeatFlights { get; set; } = new List<SeatFlight>();

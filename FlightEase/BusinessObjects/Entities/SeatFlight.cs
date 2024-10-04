@@ -13,5 +13,7 @@ public partial class SeatFlight
 
     public virtual Flight Flight { get; set; } = null!;
 
+    public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
+
     public virtual Seat Seat { get; set; } = null!;
 }
