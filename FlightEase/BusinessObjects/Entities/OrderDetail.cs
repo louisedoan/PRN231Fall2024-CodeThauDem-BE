@@ -9,6 +9,14 @@ public partial class OrderDetail
 
     public int? OrderId { get; set; }
 
+    public string? Name { get; set; }
+
+    public DateTime? DoB { get; set; }
+
+    public string? Nationality { get; set; }
+
+    public string? Email { get; set; }
+
     public int? FlightId { get; set; }
 
     public int? SeatId { get; set; }
@@ -19,9 +27,7 @@ public partial class OrderDetail
 
     public double? TotalAmount { get; set; }
 
-    public virtual Flight? Flight { get; set; }
-
     public virtual Order? Order { get; set; }
 
-    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+    public virtual SeatFlight? SeatFlight { get; set; }
 }
