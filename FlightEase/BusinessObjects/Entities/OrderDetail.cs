@@ -29,5 +29,7 @@ public partial class OrderDetail
 
     public virtual Order? Order { get; set; }
 
+    public virtual ICollection<Refund> Refunds { get; set; } = new List<Refund>();
+
     public virtual SeatFlight? SeatFlight { get; set; }
 }

@@ -7,9 +7,9 @@ public partial class Flight
 {
     public int FlightId { get; set; }
 
-    public int? PilotId { get; set; }
-
     public int? FlightNumber { get; set; }
+
+    public int? PlaneId { get; set; }
 
     public int? DepartureLocation { get; set; }
 
@@ -27,7 +27,7 @@ public partial class Flight
 
     public virtual FlightRoute? DepartureLocationNavigation { get; set; }
 
-    public virtual Pilot? Pilot { get; set; }
+    public virtual Plane? Plane { get; set; }
 
     public virtual ICollection<SeatFlight> SeatFlights { get; set; } = new List<SeatFlight>();
 }

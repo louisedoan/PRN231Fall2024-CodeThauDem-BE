@@ -29,15 +29,8 @@ namespace FlightEaseDB.BusinessLogic.Generations.DependencyInjection
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<IPaymentRepository, PaymentRepository>();
 
-            services.AddScoped<IPilotService, PilotService>();
-            services.AddScoped<IPilotRepository, PilotRepository>();
-
             services.AddScoped<IPlaneService, PlaneService>();
             services.AddScoped<IPlaneRepository, PlaneRepository>();
-
-
-            services.AddScoped<ISeatService, SeatService>();
-            services.AddScoped<ISeatRepository, SeatRepository>();
 
             services.AddScoped<ISeatFlightService, SeatFlightService>();
             services.AddScoped<ISeatFlightRepository, SeatFlightRepository>();

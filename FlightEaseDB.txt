@@ -1,22 +1,7 @@
 CREATE TABLE Plane (
     PlaneID INT IDENTITY(1,1) PRIMARY KEY,
-    PlaneCode VARCHAR(50)
-);
-
-CREATE TABLE Seat (
-    SeatID INT IDENTITY(1,1) PRIMARY KEY,
-    SeatNumber INT,
-    Class VARCHAR(50),
-    Status VARCHAR(50),
-    PlaneID INT,
-    FOREIGN KEY (PlaneID) REFERENCES Plane(PlaneID)
-);
-
-CREATE TABLE Pilot (
-    PilotID INT IDENTITY(1,1) PRIMARY KEY,
-    Name VARCHAR(100),
-   
-
+    PlaneCode VARCHAR(50),
+    Status VARCHAR(50)
 );
 
 CREATE TABLE FlightRoute (
@@ -26,15 +11,15 @@ CREATE TABLE FlightRoute (
 
 CREATE TABLE Flight (
     FlightID INT IDENTITY(1,1) PRIMARY KEY,
-    PilotID INT,
     FlightNumber INT,
+    PlaneID INT,
     DepartureLocation INT,
     DepartureTime DATETIME,
     ArrivalLocation INT,
     ArrivalTime DATETIME,
     FlightStatus VARCHAR(50),
     EmptySeat INT,
-    FOREIGN KEY (PilotID) REFERENCES Pilot(PilotID),
+    FOREIGN KEY (PlaneID) REFERENCES Plane(PlaneID),
     FOREIGN KEY (DepartureLocation) REFERENCES FlightRoute(FlightRouteID),
     FOREIGN KEY (ArrivalLocation) REFERENCES FlightRoute(FlightRouteID)
 );
@@ -43,9 +28,11 @@ CREATE TABLE Flight (
 CREATE TABLE Seat_Flight (
     SeatID INT,
     FlightID INT,
+    SeatNumer INT,
+    Class VARCHAR(50),
     Status VARCHAR(50),
+    Price FLOAT,
     PRIMARY KEY (SeatID, FlightID),
-    FOREIGN KEY (SeatID) REFERENCES Seat(SeatID),
     FOREIGN KEY (FlightID) REFERENCES Flight(FlightID)
 );
  CREATE TABLE Membership (
@@ -93,8 +80,8 @@ CREATE TABLE OrderDetail (
     Status VARCHAR(50),
     TotalAmount FLOAT,
     FOREIGN KEY (OrderID) REFERENCES [Order](OrderID),
-    FOREIGN KEY (SeatID) REFERENCES Seat_Flight(SeatID)
-    FOREIGN KEY (FlightID) REFERENCES Seat_Flight(FlightID)
+    FOREIGN KEY (SeatID, FlightID) REFERENCES Seat_Flight(SeatID, FlightID)
+
     
 );
 
@@ -107,6 +94,16 @@ CREATE TABLE Payment (
     Amount FLOAT,
     FOREIGN KEY (OrderID) REFERENCES [Order](OrderID)
 );
+
+CREATE TABLE Refund (
+    RefundID INT IDENTITY(1,1) PRIMARY KEY,
+    OrderDetailID INT,
+    RefundDate DATETIME,
+    Amount FLOAT,
+    Status VARCHAR(50),
+    FOREIGN KEY (OrderDetailID) REFERENCES [OrderDetail](OrderDetailID)
+);
+
 
 CREATE TABLE RefreshToken (
     TokenID INT IDENTITY(1,1) PRIMARY KEY,

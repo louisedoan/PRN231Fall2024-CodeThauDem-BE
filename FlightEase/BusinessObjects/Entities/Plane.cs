@@ -9,5 +9,7 @@ public partial class Plane
 
     public string? PlaneCode { get; set; }
 
-    public virtual ICollection<Seat> Seats { get; set; } = new List<Seat>();
+    public string? Status { get; set; }
+
+    public virtual ICollection<Flight> Flights { get; set; } = new List<Flight>();
 }
