@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace BusinessObjects.Entities;
 
-public partial class SeatFlight
+public partial class Seat
 {
     public int SeatId { get; set; }
 
-    public int FlightId { get; set; }
+    public int? PlaneId { get; set; }
 
     public int? SeatNumer { get; set; }
 
@@ -17,7 +17,7 @@ public partial class SeatFlight
 
     public double? Price { get; set; }
 
-    public virtual Flight Flight { get; set; } = null!;
-
     public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
+
+    public virtual Plane? Plane { get; set; }
 }

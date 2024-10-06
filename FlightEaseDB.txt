@@ -1,6 +1,13 @@
+CREATE DATABASE FlightEaseDB;
+GO
+
+USE FlightEaseDB;
+GO
+
 CREATE TABLE Plane (
     PlaneID INT IDENTITY(1,1) PRIMARY KEY,
     PlaneCode VARCHAR(50),
+    TotalSeats INT,
     Status VARCHAR(50)
 );
 
@@ -18,28 +25,27 @@ CREATE TABLE Flight (
     ArrivalLocation INT,
     ArrivalTime DATETIME,
     FlightStatus VARCHAR(50),
-    EmptySeat INT,
-    FOREIGN KEY (PlaneID) REFERENCES Plane(PlaneID),
     FOREIGN KEY (DepartureLocation) REFERENCES FlightRoute(FlightRouteID),
     FOREIGN KEY (ArrivalLocation) REFERENCES FlightRoute(FlightRouteID)
 );
 
 
-CREATE TABLE Seat_Flight (
-    SeatID INT,
-    FlightID INT,
+CREATE TABLE Seat (
+    SeatID INT PRIMARY KEY IDENTITY(1,1),
+    PlaneID INT,
     SeatNumer INT,
     Class VARCHAR(50),
     Status VARCHAR(50),
     Price FLOAT,
-    PRIMARY KEY (SeatID, FlightID),
-    FOREIGN KEY (FlightID) REFERENCES Flight(FlightID)
+    FOREIGN KEY (PlaneID) REFERENCES Plane(PlaneID)
 );
+
  CREATE TABLE Membership (
     MembershipID INT IDENTITY(1,1) PRIMARY KEY,
     Rank VARCHAR(50),
     Discount FLOAT
 );
+
 CREATE TABLE [User] (
     UserID INT IDENTITY(1,1) PRIMARY KEY,
     Email VARCHAR(100),
@@ -54,8 +60,6 @@ CREATE TABLE [User] (
     Status VARCHAR(50),
     FOREIGN KEY (MembershipID) REFERENCES Membership(MembershipID)
 );
-
-
 
 CREATE TABLE [Order] (
     OrderID INT IDENTITY(1,1) PRIMARY KEY,
@@ -76,13 +80,11 @@ CREATE TABLE OrderDetail (
     Email VARCHAR(100),
     FlightID INT,
     SeatID INT,
-    SeatNumber INT,
     Status VARCHAR(50),
     TotalAmount FLOAT,
     FOREIGN KEY (OrderID) REFERENCES [Order](OrderID),
-    FOREIGN KEY (SeatID, FlightID) REFERENCES Seat_Flight(SeatID, FlightID)
-
-    
+    FOREIGN KEY (SeatID) REFERENCES Seat(SeatID),
+    FOREIGN KEY (FlightID) REFERENCES Flight(FlightID)
 );
 
 CREATE TABLE Payment (
@@ -103,7 +105,6 @@ CREATE TABLE Refund (
     Status VARCHAR(50),
     FOREIGN KEY (OrderDetailID) REFERENCES [OrderDetail](OrderDetailID)
 );
-
 
 CREATE TABLE RefreshToken (
     TokenID INT IDENTITY(1,1) PRIMARY KEY,

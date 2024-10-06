@@ -1,10 +1,11 @@
-﻿    using BusinessObjects.DTOs;
+﻿using BusinessObjects.DTOs;
 using Repositories.Repositories;
 
 namespace FlightEase.Services.Services
 {
 
-    public interface IFlightService {
+    public interface IFlightService
+    {
         public FlightDTO CreateFlight(FlightDTO flightCreate);
         public FlightDTO UpdateFlight(FlightDTO flightUpdate);
         public bool DeleteFlight(int idTmp);
@@ -13,7 +14,8 @@ namespace FlightEase.Services.Services
         public List<FlightDTO> SearchFlight();
     }
 
-    public class FlightService : IFlightService {
+    public class FlightService : IFlightService
+    {
 
         private readonly IFlightRepository _flightRepository;
         private readonly IFlightRouteRepository _flightRouteRepository;
@@ -28,7 +30,7 @@ namespace FlightEase.Services.Services
             throw new NotImplementedException();
         }
 
-        public FlightDTO UpdateFlight(FlightDTO flightUpdate) 
+        public FlightDTO UpdateFlight(FlightDTO flightUpdate)
         {
             throw new NotImplementedException();
         }
@@ -38,12 +40,12 @@ namespace FlightEase.Services.Services
             throw new NotImplementedException();
         }
 
-        public List<FlightDTO> GetAll() 
+        public List<FlightDTO> GetAll()
         {
             throw new NotImplementedException();
         }
 
-        public FlightDTO GetById(int idTmp) 
+        public FlightDTO GetById(int idTmp)
         {
             throw new NotImplementedException();
         }
@@ -58,11 +60,10 @@ namespace FlightEase.Services.Services
                               join departureRoute in flightRoutes on flight.DepartureLocation equals departureRoute.FlightRouteId into departureGroup
                               from departureRoute in departureGroup.DefaultIfEmpty()
                               join arrivalRoute in flightRoutes on flight.ArrivalLocation equals arrivalRoute.FlightRouteId into arrivalGroup
-                              from arrivalRoute in arrivalGroup.DefaultIfEmpty() 
+                              from arrivalRoute in arrivalGroup.DefaultIfEmpty()
                               select new FlightDTO
                               {
                                   FlightId = flight.FlightId,
-                                  PilotId = flight.PilotId,
                                   FlightNumber = flight.FlightNumber,
                                   DepartureLocation = flight.DepartureLocation,
                                   DepartureLocationName = departureRoute?.Location ?? "Unknown",
@@ -71,7 +72,6 @@ namespace FlightEase.Services.Services
                                   ArrivalLocationName = arrivalRoute?.Location ?? "Unknown",
                                   ArrivalTime = flight.ArrivalTime,
                                   FlightStatus = flight.FlightStatus,
-                                  EmptySeat = flight.EmptySeat
                               }).ToList();
 
             return flightDTOs;

@@ -32,9 +32,6 @@ namespace FlightEaseDB.BusinessLogic.Generations.DependencyInjection
             services.AddScoped<IPlaneService, PlaneService>();
             services.AddScoped<IPlaneRepository, PlaneRepository>();
 
-            services.AddScoped<ISeatFlightService, SeatFlightService>();
-            services.AddScoped<ISeatFlightRepository, SeatFlightRepository>();
-
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IUserRepository, UserRepository>();
 
