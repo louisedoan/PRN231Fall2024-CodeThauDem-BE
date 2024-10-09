@@ -1,4 +1,4 @@
-﻿    using BusinessObjects.DTOs;
+﻿using BusinessObjects.DTOs;
 using Repositories.Repositories;
 
 namespace FlightEase.Services.Services
@@ -139,11 +139,10 @@ namespace FlightEase.Services.Services
                               join departureRoute in flightRoutes on flight.DepartureLocation equals departureRoute.FlightRouteId into departureGroup
                               from departureRoute in departureGroup.DefaultIfEmpty()
                               join arrivalRoute in flightRoutes on flight.ArrivalLocation equals arrivalRoute.FlightRouteId into arrivalGroup
-                              from arrivalRoute in arrivalGroup.DefaultIfEmpty() 
+                              from arrivalRoute in arrivalGroup.DefaultIfEmpty()
                               select new FlightDTO
                               {
                                   FlightId = flight.FlightId,
-                                  PilotId = flight.PilotId,
                                   FlightNumber = flight.FlightNumber,
                                   DepartureLocation = flight.DepartureLocation,
                                   DepartureLocationName = departureRoute?.Location ?? "Unknown",
@@ -152,7 +151,6 @@ namespace FlightEase.Services.Services
                                   ArrivalLocationName = arrivalRoute?.Location ?? "Unknown",
                                   ArrivalTime = flight.ArrivalTime,
                                   FlightStatus = flight.FlightStatus,
-                                  EmptySeat = flight.EmptySeat
                               }).ToList();
 
             return flightDTOs;

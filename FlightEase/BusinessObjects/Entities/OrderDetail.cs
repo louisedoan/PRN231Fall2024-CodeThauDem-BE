@@ -21,13 +21,15 @@ public partial class OrderDetail
 
     public int? SeatId { get; set; }
 
-    public int? SeatNumber { get; set; }
-
     public string? Status { get; set; }
 
     public double? TotalAmount { get; set; }
 
+    public virtual Flight? Flight { get; set; }
+
     public virtual Order? Order { get; set; }
 
-    public virtual SeatFlight? SeatFlight { get; set; }
+    public virtual ICollection<Refund> Refunds { get; set; } = new List<Refund>();
+
+    public virtual Seat? Seat { get; set; }
 }

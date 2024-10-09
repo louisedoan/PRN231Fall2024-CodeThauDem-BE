@@ -1,22 +1,14 @@
+CREATE DATABASE FlightEaseDB;
+GO
+
+USE FlightEaseDB;
+GO
+
 CREATE TABLE Plane (
     PlaneID INT IDENTITY(1,1) PRIMARY KEY,
-    PlaneCode VARCHAR(50)
-);
-
-CREATE TABLE Seat (
-    SeatID INT IDENTITY(1,1) PRIMARY KEY,
-    SeatNumber INT,
-    Class VARCHAR(50),
-    Status VARCHAR(50),
-    PlaneID INT,
-    FOREIGN KEY (PlaneID) REFERENCES Plane(PlaneID)
-);
-
-CREATE TABLE Pilot (
-    PilotID INT IDENTITY(1,1) PRIMARY KEY,
-    Name VARCHAR(100),
-   
-
+    PlaneCode VARCHAR(50),
+    TotalSeats INT,
+    Status VARCHAR(50)
 );
 
 CREATE TABLE FlightRoute (
@@ -26,33 +18,34 @@ CREATE TABLE FlightRoute (
 
 CREATE TABLE Flight (
     FlightID INT IDENTITY(1,1) PRIMARY KEY,
-    PilotID INT,
     FlightNumber INT,
+    PlaneID INT,
     DepartureLocation INT,
     DepartureTime DATETIME,
     ArrivalLocation INT,
     ArrivalTime DATETIME,
     FlightStatus VARCHAR(50),
-    EmptySeat INT,
-    FOREIGN KEY (PilotID) REFERENCES Pilot(PilotID),
     FOREIGN KEY (DepartureLocation) REFERENCES FlightRoute(FlightRouteID),
     FOREIGN KEY (ArrivalLocation) REFERENCES FlightRoute(FlightRouteID)
 );
 
 
-CREATE TABLE Seat_Flight (
-    SeatID INT,
-    FlightID INT,
+CREATE TABLE Seat (
+    SeatID INT PRIMARY KEY IDENTITY(1,1),
+    PlaneID INT,
+    SeatNumer INT,
+    Class VARCHAR(50),
     Status VARCHAR(50),
-    PRIMARY KEY (SeatID, FlightID),
-    FOREIGN KEY (SeatID) REFERENCES Seat(SeatID),
-    FOREIGN KEY (FlightID) REFERENCES Flight(FlightID)
+    Price FLOAT,
+    FOREIGN KEY (PlaneID) REFERENCES Plane(PlaneID)
 );
+
  CREATE TABLE Membership (
     MembershipID INT IDENTITY(1,1) PRIMARY KEY,
     Rank VARCHAR(50),
     Discount FLOAT
 );
+
 CREATE TABLE [User] (
     UserID INT IDENTITY(1,1) PRIMARY KEY,
     Email VARCHAR(100),
@@ -67,8 +60,6 @@ CREATE TABLE [User] (
     Status VARCHAR(50),
     FOREIGN KEY (MembershipID) REFERENCES Membership(MembershipID)
 );
-
-
 
 CREATE TABLE [Order] (
     OrderID INT IDENTITY(1,1) PRIMARY KEY,
@@ -89,13 +80,11 @@ CREATE TABLE OrderDetail (
     Email VARCHAR(100),
     FlightID INT,
     SeatID INT,
-    SeatNumber INT,
     Status VARCHAR(50),
     TotalAmount FLOAT,
     FOREIGN KEY (OrderID) REFERENCES [Order](OrderID),
-    FOREIGN KEY (SeatID) REFERENCES Seat_Flight(SeatID)
-    FOREIGN KEY (FlightID) REFERENCES Seat_Flight(FlightID)
-    
+    FOREIGN KEY (SeatID) REFERENCES Seat(SeatID),
+    FOREIGN KEY (FlightID) REFERENCES Flight(FlightID)
 );
 
 CREATE TABLE Payment (
@@ -106,6 +95,15 @@ CREATE TABLE Payment (
     Status VARCHAR(50),
     Amount FLOAT,
     FOREIGN KEY (OrderID) REFERENCES [Order](OrderID)
+);
+
+CREATE TABLE Refund (
+    RefundID INT IDENTITY(1,1) PRIMARY KEY,
+    OrderDetailID INT,
+    RefundDate DATETIME,
+    Amount FLOAT,
+    Status VARCHAR(50),
+    FOREIGN KEY (OrderDetailID) REFERENCES [OrderDetail](OrderDetailID)
 );
 
 CREATE TABLE RefreshToken (
