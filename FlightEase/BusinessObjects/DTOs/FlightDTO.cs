@@ -22,5 +22,6 @@
         public string? FlightStatus { get; set; }
 
         public int? EmptySeat { get; set; }
+
     }
 }
