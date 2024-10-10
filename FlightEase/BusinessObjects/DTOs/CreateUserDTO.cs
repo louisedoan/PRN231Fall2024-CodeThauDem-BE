@@ -20,6 +20,7 @@ namespace BusinessObjects.DTOs
 
 		public DateTime? Dob { get; set; }
 		public string? Role { get; set; }
+		public string? Status { get; set; }
 
 	}
 }
