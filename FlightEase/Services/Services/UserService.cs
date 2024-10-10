@@ -10,7 +10,7 @@ namespace FlightEaseDB.BusinessLogic.Services
 
 	public interface IUserService
 	{
-		public UserDTO CreateUser(UserDTO userCreate);
+		public CreateUserDTO CreateUser(CreateUserDTO userCreate);
 		public UserDTO UpdateUser(UserDTO userUpdate);
 		public bool DeleteUser(int idTmp);
 		public List<UserDTO> GetAll();
@@ -31,7 +31,7 @@ namespace FlightEaseDB.BusinessLogic.Services
 			_jwtTokenHelper = jwtTokenHelper;
 		}
 
-		public UserDTO CreateUser(UserDTO userCreate)
+		public CreateUserDTO CreateUser(CreateUserDTO userCreate)
 		{
 			userCreate.Role = UserRole.Manager.ToString();
 			var user = new User
@@ -39,13 +39,13 @@ namespace FlightEaseDB.BusinessLogic.Services
 				Email = userCreate.Email,
 				Password = userCreate.Password,
 				Gender = userCreate.Gender,
-				Nationality = userCreate.Nationality,
+				
 				Address = userCreate.Address,
 				Fullname = userCreate.Fullname,
 				Dob = userCreate.Dob,
 				Role = userCreate.Role,
-				MembershipId = userCreate.MembershipId,
-				Status = userCreate.Status
+				
+				
 			};
 
 			//user.Role = "Staff";
@@ -54,7 +54,6 @@ namespace FlightEaseDB.BusinessLogic.Services
 			_userRepository.Create(user);
 			_userRepository.Save();
 
-			userCreate.UserId = user.UserId; // Lấy ID từ entity sau khi lưu
 			return userCreate;
 		}
 
