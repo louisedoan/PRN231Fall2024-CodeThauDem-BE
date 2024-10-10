@@ -28,7 +28,7 @@ namespace FlightEase.Presentation.Controllers
             }
             var flightCreated = _flightService.CreateFlight(flightCreate);
 
-           
+
             return flightCreated;
         }
 
@@ -101,6 +101,18 @@ namespace FlightEase.Presentation.Controllers
 
 
             return Ok(seats);
+        }
+
+        [MapToApiVersion("1")]
+        [HttpGet("search-one-way")]
+        public ActionResult<List<FlightDTO>> SearchOneWayFlight([FromQuery] int departureLocation, [FromQuery] int arrivalLocation, [FromQuery] DateTime departureDate)
+        {
+            var flights = _flightService.SearchOneWayFlight(departureLocation, arrivalLocation, departureDate);
+            if (flights == null || flights.Count == 0)
+            {
+                return NotFound("No flights found for the given criteria.");
+            }
+            return Ok(flights);
         }
 
     }

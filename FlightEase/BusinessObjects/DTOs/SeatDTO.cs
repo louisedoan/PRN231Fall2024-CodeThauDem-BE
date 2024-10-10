@@ -8,6 +8,7 @@
 
         public string? Class { get; set; }
 
+        public double? Price { get; set; }
         public string? Status { get; set; }
 
         public int? PlaneId { get; set; }
