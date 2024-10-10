@@ -30,32 +30,30 @@ namespace FlightEaseDB.BusinessLogic.Services
 			_userRepository = userRepository;
 			_jwtTokenHelper = jwtTokenHelper;
 		}
-
 		public CreateUserDTO CreateUser(CreateUserDTO userCreate)
 		{
 			userCreate.Role = UserRole.Manager.ToString();
+
+			// Tạo mới đối tượng User
 			var user = new User
 			{
 				Email = userCreate.Email,
 				Password = userCreate.Password,
 				Gender = userCreate.Gender,
-				
 				Address = userCreate.Address,
 				Fullname = userCreate.Fullname,
 				Dob = userCreate.Dob,
 				Role = userCreate.Role,
-				
-				
+				Status = userCreate.Status,
 			};
 
-			//user.Role = "Staff";
-
-			// Gọi thẳng phương thức từ UserRepository (BaseRepository)
+			// Thực hiện tạo user mới
 			_userRepository.Create(user);
 			_userRepository.Save();
 
 			return userCreate;
 		}
+
 
 		public UserDTO UpdateUser(UserDTO userUpdate)
 		{
