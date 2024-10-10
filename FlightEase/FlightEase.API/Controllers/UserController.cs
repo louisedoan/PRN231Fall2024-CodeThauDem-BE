@@ -22,7 +22,7 @@ namespace FlightEaseDB.Presentation.Controllers
 		// POST: /api/v1/users/create
 		[MapToApiVersion("1")]
 		[HttpPost("create")]
-		public ActionResult<UserDTO> CreateUser([FromBody] UserDTO userCreate)
+		public ActionResult<UserDTO> CreateUser([FromBody] CreateUserDTO userCreate)
 		{
 			if (userCreate == null)
 			{
