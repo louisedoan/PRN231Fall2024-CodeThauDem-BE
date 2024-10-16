@@ -40,6 +40,7 @@ namespace Services.Services
                     SeatNumber = s.SeatNumer,
                     Class = s.Class,
                     Status = s.Status,
+                    PlaneId = s.PlaneId,
                     Price = s.Price
                 })
                 .ToList();
@@ -74,6 +75,7 @@ namespace Services.Services
                     SeatNumber = s.SeatNumer,
                     Class = s.Class,
                     Status = s.Status,
+                    PlaneId = s.PlaneId,
                     Price = s.Price
                 })
                 .ToList();
