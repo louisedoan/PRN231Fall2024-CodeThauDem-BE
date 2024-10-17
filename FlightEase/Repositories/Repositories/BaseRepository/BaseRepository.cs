@@ -6,7 +6,7 @@ namespace Repositories.Repositories.BaseRepository
 {
     public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : class
     {
-        private readonly DbContext _dbContext;
+        protected readonly DbContext _dbContext;
 
         private readonly DbSet<TEntity> _dbSet;
 
