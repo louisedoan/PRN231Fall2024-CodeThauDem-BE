@@ -1,4 +1,5 @@
 ﻿using BusinessObjects.DTOs;
+using BusinessObjects.Entities;
 using BusinessObjects.Enums;
 using Repositories.Repositories;
 
@@ -32,7 +33,33 @@ public class FlightService : IFlightService
 
     public FlightDTO CreateFlight(FlightDTO flightCreate)
     {
-        throw new NotImplementedException();
+        var flight = new Flight
+        {
+            FlightId = flightCreate.FlightId,
+
+            FlightNumber = flightCreate.FlightNumber,
+            DepartureLocation = flightCreate.DepartureLocation,
+            DepartureTime = flightCreate.DepartureTime,
+            ArrivalLocation = flightCreate.ArrivalLocation,
+            ArrivalTime = flightCreate.ArrivalTime,
+            FlightStatus = flightCreate.FlightStatus,
+
+        };
+        _flightRepository.Create(flight);
+        _flightRepository.Save();
+        var flightDTO = new FlightDTO
+        {
+            FlightId = flight.FlightId,
+
+            FlightNumber = flight.FlightNumber,
+            DepartureLocation = flight.DepartureLocation,
+            DepartureTime = flight.DepartureTime,
+            ArrivalLocation = flight.ArrivalLocation,
+            ArrivalTime = flight.ArrivalTime,
+            FlightStatus = flight.FlightStatus,
+
+        };
+        return flightDTO;
     }
 
     public FlightDTO UpdateFlight(FlightDTO flightUpdate)
@@ -47,7 +74,19 @@ public class FlightService : IFlightService
 
     public List<FlightDTO> GetAll()
     {
-        throw new NotImplementedException();
+        var flight = _flightRepository.Get().ToList();
+        var flightDTO = flight.Select(x => new FlightDTO
+        {
+            FlightId = x.FlightId,
+          //  PilotId = x.PilotId,
+          PlaneId = x.PlaneId,
+            FlightNumber = x.FlightNumber,
+            DepartureTime = x.DepartureTime,
+            ArrivalTime = x.ArrivalTime,
+            FlightStatus = x.FlightStatus,
+        //    EmptySeat = x.EmptySeat,
+        }).ToList();
+        return flightDTO;
     }
 
     public FlightDTO GetById(int idTmp)
