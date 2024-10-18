@@ -14,6 +14,7 @@ public interface IFlightService
     List<FlightDTO> SearchOneWayFlight(int departureLocation, int arrivalLocation, DateTime departureDate);
 
     Task<ResultModel> GetAllFlightReports();
+    Task<ResultModel> GetFlightReportByOrderID(int orderId);
 }
 
 public class FlightService : IFlightService
@@ -194,7 +195,7 @@ public class FlightService : IFlightService
                                  {
                                      OrderId = order.OrderDetailId,
                                      PaymentStatus = order.Status,
-                                     //BookingStatus = order. (if available),
+                                     //BookingStatus,...
                                      FlightId = flight.FlightId,
                                      PlaneId = flight.PlaneId,
                                      PlaneCode = plane?.PlaneCode,
@@ -226,6 +227,82 @@ public class FlightService : IFlightService
 
         return result;
     }
+
+    #endregion
+
+    #region GetFlightReportByID
+
+    public async Task<ResultModel> GetFlightReportByOrderID(int orderId)
+    {
+        var result = new ResultModel();
+        try
+        {
+            
+            var order = _orderDetailRepository.Get().FirstOrDefault(o => o.OrderDetailId == orderId);
+            if (order == null)
+            {
+                result.IsSuccess = false;
+                result.Message = "Order not found for the specified OrderId.";
+                result.StatusCode = 404;
+                return result;
+            }
+
+         
+            var flight = _flightRepository.Get().FirstOrDefault(f => f.FlightId == order.FlightId);
+            if (flight == null)
+            {
+                result.IsSuccess = false;
+                result.Message = "Flight not found for the specified Order.";
+                result.StatusCode = 404;
+                return result;
+            }
+
+            var flightRoutes = _flightRouteRepository.Get().ToList();
+            var plane = _planeRepository.Get().FirstOrDefault(p => p.PlaneId == flight.PlaneId);
+            var seats = _seatRepository.Get().ToList();
+
+            
+            var departureRoute = flightRoutes.FirstOrDefault(fr => fr.FlightRouteId == flight.DepartureLocation);
+            var arrivalRoute = flightRoutes.FirstOrDefault(fr => fr.FlightRouteId == flight.ArrivalLocation);
+
+            
+            var availableBusinessSeats = seats.Count(s => s.PlaneId == flight.PlaneId && s.SeatNumer >= 1 && s.SeatNumer <= 12 && s.Status == "Available");
+            var availableEconomySeats = seats.Count(s => s.PlaneId == flight.PlaneId && s.SeatNumer >= 13 && s.SeatNumer <= 42 && s.Status == "Available");
+
+            var flightReport = new FlightReportDTO
+            {
+                OrderId = order.OrderDetailId,
+                PaymentStatus = order.Status,
+                FlightId = flight.FlightId,
+                PlaneId = flight.PlaneId,
+                PlaneCode = plane?.PlaneCode,
+                FlightNumber = flight.FlightNumber,
+                DepartureLocation = flight.DepartureLocation,
+                DepartureLocationName = departureRoute?.Location ?? "Unknown",
+                DepartureTime = flight.DepartureTime,
+                ArrivalLocation = flight.ArrivalLocation,
+                ArrivalLocationName = arrivalRoute?.Location ?? "Unknown",
+                ArrivalTime = flight.ArrivalTime,
+                FlightStatus = flight.FlightStatus,
+                AvailableBusinessSeats = availableBusinessSeats,
+                AvailableEconomySeats = availableEconomySeats,
+            };
+
+            result.IsSuccess = true;
+            result.Message = "Flight report retrieved successfully.";
+            result.Data = flightReport;
+            result.StatusCode = 200;
+        }
+        catch (Exception ex)
+        {
+            result.IsSuccess = false;
+            result.Message = $"An error occurred: {ex.Message}";
+            result.StatusCode = 500;
+        }
+
+        return result;
+    }
+
 
     #endregion
 }

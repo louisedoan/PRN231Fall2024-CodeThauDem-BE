@@ -129,5 +129,18 @@ namespace FlightEase.Presentation.Controllers
             return BadRequest();
         }
 
+        [MapToApiVersion("1")]
+        [HttpPost("get-flight-report-by-order/{orderId}")]
+        public async Task<IActionResult> GetFlightReportByOrderID(int orderId)
+        {
+            var result = await _flightService.GetFlightReportByOrderID(orderId);
+
+            if (result.IsSuccess)
+            {
+                return Ok(result);
+            }
+
+            return StatusCode(result.StatusCode, result);
+        }
     }
 }
