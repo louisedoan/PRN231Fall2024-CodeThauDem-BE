@@ -1,4 +1,4 @@
-using BusinessObjects.DTOs;
+﻿using BusinessObjects.DTOs;
 using FlightEaseDB.BusinessLogic.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,17 +10,17 @@ namespace FlightEaseDB.Presentation.Controllers
     [Route("/api/v1/orders")]
     public class OrderController : ControllerBase
     {
-
-        private IOrderService _orderService;
+        private readonly IOrderService _orderService;
 
         public OrderController(IOrderService orderService)
         {
             _orderService = orderService;
         }
 
+        // Tạo mới đơn hàng
         [MapToApiVersion("1")]
         [HttpPost]
-        public async Task<ActionResult<ResultModel>> CreateOrder(OrderDTO orderCreate)
+        public async Task<ActionResult<ResultModel>> CreateOrder(OrderCreateDTO orderCreate)
         {
             var result = await _orderService.CreateOrder(orderCreate);
             if (result.IsSuccess)
@@ -30,57 +30,94 @@ namespace FlightEaseDB.Presentation.Controllers
             return BadRequest(result);
         }
 
+        // Lấy tất cả các đơn hàng
         [MapToApiVersion("1")]
         [HttpGet]
-        public ActionResult<List<OrderDTO>> GetAll()
+        public ActionResult GetAll()
         {
-            var orderList = _orderService.GetAll();
-
-            if (orderList == null)
+            try
             {
-                return NotFound("");
+                var orderList = _orderService.GetAll();
+
+                if (orderList == null || !orderList.Any())
+                {
+                    return NotFound(new { message = "No orders found." });
+                }
+
+                return Ok(new { message = "Orders retrieved successfully.", orders = orderList });
             }
-            return orderList;
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while retrieving orders.", error = ex.Message });
+            }
         }
 
+        // Lấy đơn hàng theo ID
         [MapToApiVersion("1")]
-        [HttpGet("idTmp")]
-        public ActionResult<OrderDTO> GetById(int idTmp)
+        [HttpGet("{idTmp}")]
+        public ActionResult GetById(int idTmp)
         {
-            var orderDetail = _orderService.GetById(idTmp);
-
-            if (orderDetail == null)
+            try
             {
-                return NotFound("");
+                var orderDetail = _orderService.GetById(idTmp);
+
+                if (orderDetail == null)
+                {
+                    return NotFound(new { message = $"Order with ID {idTmp} not found." });
+                }
+
+                return Ok(new { message = "Order retrieved successfully.", order = orderDetail });
             }
-            return orderDetail;
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while retrieving the order.", error = ex.Message });
+            }
         }
 
+        // Xóa đơn hàng theo ID
         [MapToApiVersion("1")]
-        [HttpDelete]
-        public ActionResult<bool> DeleteOrder(int idTmp)
+        [HttpDelete("{idTmp}")]
+        public ActionResult DeleteOrder(int idTmp)
         {
-            var check = _orderService.DeleteOrder(idTmp);
-
-            if (check == false)
+            try
             {
-                return NotFound("");
+                var result = _orderService.DeleteOrder(idTmp);
+
+                if (!result)
+                {
+                    return NotFound(new { message = $"Order with ID {idTmp} could not be deleted or does not exist." });
+                }
+
+                return Ok(new { message = "Order deleted successfully." });
             }
-            return check;
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while deleting the order.", error = ex.Message });
+            }
         }
 
+        // Cập nhật đơn hàng
         [MapToApiVersion("1")]
         [HttpPut]
-        public ActionResult<OrderDTO> UpdateOrder(OrderDTO orderCreate)
+        public ActionResult UpdateOrder(OrderDTO orderUpdate)
         {
-            var orderUpdated = _orderService.UpdateOrder(orderCreate);
-
-            if (orderUpdated == null)
+            try
             {
-                return NotFound("");
+                var orderUpdated = _orderService.UpdateOrder(orderUpdate);
+
+                if (orderUpdated == null)
+                {
+                    return NotFound(new { message = $"Order with ID {orderUpdate.OrderId} could not be updated or does not exist." });
+                }
+
+                return Ok(new { message = "Order updated successfully.", order = orderUpdated });
             }
-            return orderUpdated;
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while updating the order.", error = ex.Message });
+            }
         }
     }
+
 
 }

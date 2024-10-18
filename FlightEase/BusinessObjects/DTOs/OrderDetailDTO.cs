@@ -6,27 +6,34 @@ namespace BusinessObjects.DTOs
     {
         public int OrderDetailId { get; set; }
         public string Name { get; set; }
-        [Range(typeof(DateTime), "1950-01-01", "2024-12-31", ErrorMessage = "DoB must be between 1950 and 2024")]
         public DateTime? DoB { get; set; }
+        [Required]
         public string? Nationality { get; set; }
+
+        [Required]
         public string? Email { get; set; }
+        [Required]
         public int? FlightId { get; set; }
+        [Required]
         public string TripType { get; set; }
+        [Required]
         public int? SeatId { get; set; }
         public string Status { get; set; }
-        [Range(0, double.MaxValue, ErrorMessage = "Total price must be greater than 0")]
         public double? TotalAmount { get; set; }
     }
     public class PassengerDTO
     {
+        [Required]
         public string Name { get; set; }
-
-        [Range(typeof(DateTime), "1950-01-01", "2024-12-31", ErrorMessage = "DoB must be between 1950 and 2024")]
         public DateTime DoB { get; set; }
+        [Required]
         public string Nationality { get; set; }
+        [Required]
         public string Email { get; set; }
         public int? FlightId { get; set; }
+        [Required]
         public string TripType { get; set; }
+        [Required]
         public int? SeatId { get; set; }
         [Range(0, double.MaxValue, ErrorMessage = "Total price must be greater than 0")]
         public double Price { get; set; }

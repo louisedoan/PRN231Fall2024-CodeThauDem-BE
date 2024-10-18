@@ -9,7 +9,7 @@ namespace FlightEaseDB.BusinessLogic.Services
 
     public interface IOrderService
     {
-        public Task<ResultModel> CreateOrder(OrderDTO orderCreate);
+        public Task<ResultModel> CreateOrder(OrderCreateDTO orderCreate);
         public OrderDTO UpdateOrder(OrderDTO orderUpdate);
         public bool DeleteOrder(int idTmp);
         public List<OrderDTO> GetAll();
@@ -34,11 +34,10 @@ namespace FlightEaseDB.BusinessLogic.Services
             _jwtTokenHelper = jwtTokenHelper;
         }
 
-        public async Task<ResultModel> CreateOrder(OrderDTO orderCreate)
+        public async Task<ResultModel> CreateOrder(OrderCreateDTO orderCreate)
         {
             try
             {
-
                 var order = new Order
                 {
                     UserId = orderCreate.UserId,
@@ -55,7 +54,30 @@ namespace FlightEaseDB.BusinessLogic.Services
                         {
                             IsSuccess = false,
                             Message = "FlightId and SeatId cannot be null",
-                            StatusCode = 400
+                            StatusCode = 400,
+                            Data = null
+                        };
+                    }
+
+                    if (passenger.DoB < new DateTime(1950, 1, 1) || passenger.DoB > new DateTime(2024, 12, 31))
+                    {
+                        return new ResultModel
+                        {
+                            IsSuccess = false,
+                            Message = "DoB must be between 1/1/1950 and 31/12/2024",
+                            StatusCode = 400,
+                            Data = null
+                        };
+                    }
+
+                    if (passenger.Price <= 0)
+                    {
+                        return new ResultModel
+                        {
+                            IsSuccess = false,
+                            Message = "Price must be greater than 0",
+                            StatusCode = 400,
+                            Data = null
                         };
                     }
 
@@ -68,7 +90,8 @@ namespace FlightEaseDB.BusinessLogic.Services
                         {
                             IsSuccess = false,
                             Message = $"Seat {seat.SeatId} is already taken",
-                            StatusCode = 400
+                            StatusCode = 400,
+                            Data = null
                         };
                     }
 
@@ -99,7 +122,7 @@ namespace FlightEaseDB.BusinessLogic.Services
                 {
                     IsSuccess = true,
                     Message = "Order created successfully",
-                    Data = new OrderDTO
+                    Data = new OrderCreateDTO
                     {
                         OrderId = order.OrderId,
                         UserId = order.UserId,
@@ -135,26 +158,68 @@ namespace FlightEaseDB.BusinessLogic.Services
         }
 
 
+
         public OrderDTO UpdateOrder(OrderDTO orderUpdate)
         {
-            throw new NotImplementedException();
+            var existingOrder = _orderRepository.Get(orderUpdate.OrderId);
+            if (existingOrder == null) return null;
+
+            existingOrder.UserId = orderUpdate.UserId;
+            existingOrder.OrderDate = orderUpdate.OrderDate;
+            existingOrder.Status = orderUpdate.Status;
+            existingOrder.TotalPrice = orderUpdate.TotalPrice;
+
+            _orderRepository.Update(existingOrder);
+            _orderRepository.Save();
+
+            return MapOrderToDTO(existingOrder, _flightRepository);
         }
 
         public bool DeleteOrder(int idTmp)
         {
-            throw new NotImplementedException();
+            var existingOrder = _orderRepository.Get(idTmp);
+            if (existingOrder == null) return false;
+
+            _orderRepository.Delete(existingOrder);
+            _orderRepository.Save();
+
+            return true;
         }
 
         public List<OrderDTO> GetAll()
         {
-            throw new NotImplementedException();
+            var orders = _orderRepository.Get().ToList();
+            return orders.Select(order => MapOrderToDTO(order, _flightRepository)).ToList();
         }
 
         public OrderDTO GetById(int idTmp)
         {
-            throw new NotImplementedException();
+            var order = _orderRepository.Get(idTmp);
+            return order == null ? null : MapOrderToDTO(order, _flightRepository);
         }
 
+        // Cập nhật phương thức MapOrderToDTO thành static và chuyển _flightRepository thành tham số
+        private static OrderDTO MapOrderToDTO(Order order, IFlightRepository flightRepository)
+        {
+            var orderDTO = new OrderDTO
+            {
+                OrderId = order.OrderId,
+                UserId = order.UserId,
+                OrderDate = order.OrderDate,
+                Status = order.Status,
+                TotalPrice = order.TotalPrice
+            };
+
+            var flight = flightRepository.GetFlightWithLocations(f => f.OrderDetails.Any(od => od.OrderId == order.OrderId));
+
+            if (flight != null)
+            {
+                orderDTO.DepartureLocation = flight.DepartureLocationNavigation?.Location;
+                orderDTO.ArrivalLocation = flight.ArrivalLocationNavigation?.Location;
+            }
+
+            return orderDTO;
+        }
     }
 
 }

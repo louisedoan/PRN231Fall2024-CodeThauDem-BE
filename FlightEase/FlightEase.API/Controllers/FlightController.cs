@@ -34,7 +34,7 @@ namespace FlightEase.Presentation.Controllers
 
         [MapToApiVersion("1")]
         [HttpGet]
-        public ActionResult<List<FlightDTO>> GetAll()
+        public ActionResult<List<FlightDTO>> GetAllReport()
         {
             var flightList = _flightService.GetAll();
 
@@ -115,5 +115,32 @@ namespace FlightEase.Presentation.Controllers
             return Ok(flights);
         }
 
+        [MapToApiVersion("1")]
+        [HttpGet("get-all-flightReport")]
+        public async Task<ActionResult<ResultModel>> GetAll()
+        {
+            var result = await _flightService.GetAllFlightReports();
+
+            if (result.IsSuccess)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest();
+        }
+
+        [MapToApiVersion("1")]
+        [HttpPost("get-flight-report-by-order/{orderId}")]
+        public async Task<IActionResult> GetFlightReportByOrderID(int orderId)
+        {
+            var result = await _flightService.GetFlightReportByOrderID(orderId);
+
+            if (result.IsSuccess)
+            {
+                return Ok(result);
+            }
+
+            return StatusCode(result.StatusCode, result);
+        }
     }
 }

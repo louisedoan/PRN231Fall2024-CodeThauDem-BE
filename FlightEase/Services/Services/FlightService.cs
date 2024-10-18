@@ -1,4 +1,5 @@
 ﻿using BusinessObjects.DTOs;
+using BusinessObjects.Entities;
 using BusinessObjects.Enums;
 using Repositories.Repositories;
 
@@ -11,6 +12,9 @@ public interface IFlightService
     public FlightDTO GetById(int idTmp);
     public List<FlightDTO> SearchFlight();
     List<FlightDTO> SearchOneWayFlight(int departureLocation, int arrivalLocation, DateTime departureDate);
+
+    Task<ResultModel> GetAllFlightReports();
+    Task<ResultModel> GetFlightReportByOrderID(int orderId);
 }
 
 public class FlightService : IFlightService
@@ -20,19 +24,47 @@ public class FlightService : IFlightService
     private readonly IFlightRouteRepository _flightRouteRepository;
     private readonly IPlaneRepository _planeRepository;
     private readonly ISeatRepository _seatRepository;
+    private readonly IOrderDetailRepository _orderDetailRepository;
 
 
-    public FlightService(IFlightRepository flightRepository, IFlightRouteRepository flightRouteRepository, IPlaneRepository planeRepository, ISeatRepository seatRepository)
+    public FlightService(IFlightRepository flightRepository, IFlightRouteRepository flightRouteRepository, IPlaneRepository planeRepository, ISeatRepository seatRepository, IOrderDetailRepository orderDetailRepository)
     {
         _flightRepository = flightRepository;
         _flightRouteRepository = flightRouteRepository;
         _planeRepository = planeRepository;
         _seatRepository = seatRepository;
+        _orderDetailRepository = orderDetailRepository;
     }
 
     public FlightDTO CreateFlight(FlightDTO flightCreate)
     {
-        throw new NotImplementedException();
+        var flight = new Flight
+        {
+            FlightId = flightCreate.FlightId,
+
+            FlightNumber = flightCreate.FlightNumber,
+            DepartureLocation = flightCreate.DepartureLocation,
+            DepartureTime = flightCreate.DepartureTime,
+            ArrivalLocation = flightCreate.ArrivalLocation,
+            ArrivalTime = flightCreate.ArrivalTime,
+            FlightStatus = flightCreate.FlightStatus,
+
+        };
+        _flightRepository.Create(flight);
+        _flightRepository.Save();
+        var flightDTO = new FlightDTO
+        {
+            FlightId = flight.FlightId,
+
+            FlightNumber = flight.FlightNumber,
+            DepartureLocation = flight.DepartureLocation,
+            DepartureTime = flight.DepartureTime,
+            ArrivalLocation = flight.ArrivalLocation,
+            ArrivalTime = flight.ArrivalTime,
+            FlightStatus = flight.FlightStatus,
+
+        };
+        return flightDTO;
     }
 
     public FlightDTO UpdateFlight(FlightDTO flightUpdate)
@@ -47,7 +79,19 @@ public class FlightService : IFlightService
 
     public List<FlightDTO> GetAll()
     {
-        throw new NotImplementedException();
+        var flight = _flightRepository.Get().ToList();
+        var flightDTO = flight.Select(x => new FlightDTO
+        {
+            FlightId = x.FlightId,
+          //  PilotId = x.PilotId,
+          PlaneId = x.PlaneId,
+            FlightNumber = x.FlightNumber,
+            DepartureTime = x.DepartureTime,
+            ArrivalTime = x.ArrivalTime,
+            FlightStatus = x.FlightStatus,
+        //    EmptySeat = x.EmptySeat,
+        }).ToList();
+        return flightDTO;
     }
 
     public FlightDTO GetById(int idTmp)
@@ -122,5 +166,144 @@ public class FlightService : IFlightService
 
         return flightDTOs;
     }
+
+
+
+    #region ManageFlightReport
+    public async Task<ResultModel> GetAllFlightReports()
+    {
+        var result = new ResultModel();
+        try
+        {
+            var orders = _orderDetailRepository.Get().ToList();
+            var flights = _flightRepository.Get().ToList();
+            var flightRoutes = _flightRouteRepository.Get().ToList();
+            var planes = _planeRepository.Get().ToList();
+            var seats = _seatRepository.Get().ToList();
+
+            var flightReports = (from order in orders
+                                 join flight in flights on order.FlightId equals flight.FlightId
+                                 join departureRoute in flightRoutes on flight.DepartureLocation equals departureRoute.FlightRouteId into departureGroup
+                                 from departureRoute in departureGroup.DefaultIfEmpty()
+                                 join arrivalRoute in flightRoutes on flight.ArrivalLocation equals arrivalRoute.FlightRouteId into arrivalGroup
+                                 from arrivalRoute in arrivalGroup.DefaultIfEmpty()
+                                 join plane in planes on flight.PlaneId equals plane.PlaneId into planeGroup
+                                 from plane in planeGroup.DefaultIfEmpty()
+                                 let availableBusinessSeats = seats.Count(s => s.PlaneId == flight.PlaneId && s.SeatNumer >= 1 && s.SeatNumer <= 12 && s.Status == "Available")
+                                 let availableEconomySeats = seats.Count(s => s.PlaneId == flight.PlaneId && s.SeatNumer >= 13 && s.SeatNumer <= 42 && s.Status == "Available")
+                                 select new FlightReportDTO
+                                 {
+                                     OrderId = order.OrderDetailId,
+                                     PaymentStatus = order.Status,
+                                     //BookingStatus,...
+                                     FlightId = flight.FlightId,
+                                     PlaneId = flight.PlaneId,
+                                     PlaneCode = plane?.PlaneCode,
+                                     FlightNumber = flight.FlightNumber,
+                                     DepartureLocation = flight.DepartureLocation,
+                                     DepartureLocationName = departureRoute?.Location ?? "Unknown",
+                                     DepartureTime = flight.DepartureTime,
+                                     ArrivalLocation = flight.ArrivalLocation,
+                                     ArrivalLocationName = arrivalRoute?.Location ?? "Unknown",
+                                     ArrivalTime = flight.ArrivalTime,
+                                     FlightStatus = flight.FlightStatus,
+                                     AvailableBusinessSeats = availableBusinessSeats,
+                                     AvailableEconomySeats = availableEconomySeats,
+                                     //BookingDate = order.BookingDate,
+                                     //CancellationDate = order.CancellationDate
+                                 }).ToList();
+
+            result.IsSuccess = true;
+            result.Message = "Reports retrieved successfully.";
+            result.Data = flightReports;
+            result.StatusCode = 200;
+        }
+        catch (Exception ex)
+        {
+            result.IsSuccess = false;
+            result.Message = $"Failed to retrieve accounts: {ex.Message}";
+            result.StatusCode = 500;
+        }
+
+        return result;
+    }
+
+    #endregion
+
+    #region GetFlightReportByID
+
+    public async Task<ResultModel> GetFlightReportByOrderID(int orderId)
+    {
+        var result = new ResultModel();
+        try
+        {
+            
+            var order = _orderDetailRepository.Get().FirstOrDefault(o => o.OrderDetailId == orderId);
+            if (order == null)
+            {
+                result.IsSuccess = false;
+                result.Message = "Order not found for the specified OrderId.";
+                result.StatusCode = 404;
+                return result;
+            }
+
+         
+            var flight = _flightRepository.Get().FirstOrDefault(f => f.FlightId == order.FlightId);
+            if (flight == null)
+            {
+                result.IsSuccess = false;
+                result.Message = "Flight not found for the specified Order.";
+                result.StatusCode = 404;
+                return result;
+            }
+
+            var flightRoutes = _flightRouteRepository.Get().ToList();
+            var plane = _planeRepository.Get().FirstOrDefault(p => p.PlaneId == flight.PlaneId);
+            var seats = _seatRepository.Get().ToList();
+
+            
+            var departureRoute = flightRoutes.FirstOrDefault(fr => fr.FlightRouteId == flight.DepartureLocation);
+            var arrivalRoute = flightRoutes.FirstOrDefault(fr => fr.FlightRouteId == flight.ArrivalLocation);
+
+            
+            var availableBusinessSeats = seats.Count(s => s.PlaneId == flight.PlaneId && s.SeatNumer >= 1 && s.SeatNumer <= 12 && s.Status == "Available");
+            var availableEconomySeats = seats.Count(s => s.PlaneId == flight.PlaneId && s.SeatNumer >= 13 && s.SeatNumer <= 42 && s.Status == "Available");
+
+            var flightReport = new FlightReportDTO
+            {
+                OrderId = order.OrderDetailId,
+                PaymentStatus = order.Status,
+                FlightId = flight.FlightId,
+                PlaneId = flight.PlaneId,
+                PlaneCode = plane?.PlaneCode,
+                FlightNumber = flight.FlightNumber,
+                DepartureLocation = flight.DepartureLocation,
+                DepartureLocationName = departureRoute?.Location ?? "Unknown",
+                DepartureTime = flight.DepartureTime,
+                ArrivalLocation = flight.ArrivalLocation,
+                ArrivalLocationName = arrivalRoute?.Location ?? "Unknown",
+                ArrivalTime = flight.ArrivalTime,
+                FlightStatus = flight.FlightStatus,
+                AvailableBusinessSeats = availableBusinessSeats,
+                AvailableEconomySeats = availableEconomySeats,
+            };
+
+            result.IsSuccess = true;
+            result.Message = "Flight report retrieved successfully.";
+            result.Data = flightReport;
+            result.StatusCode = 200;
+        }
+        catch (Exception ex)
+        {
+            result.IsSuccess = false;
+            result.Message = $"An error occurred: {ex.Message}";
+            result.StatusCode = 500;
+        }
+
+        return result;
+    }
+
+
+    #endregion
 }
 
