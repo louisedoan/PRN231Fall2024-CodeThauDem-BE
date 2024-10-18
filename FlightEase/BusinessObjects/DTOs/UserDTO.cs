@@ -20,7 +20,7 @@
 
         public string? Role { get; set; }
 
-        public int? MembershipId { get; set; }
+        public string? Rank { get; set; }
 
         public string? Status { get; set; }
     }

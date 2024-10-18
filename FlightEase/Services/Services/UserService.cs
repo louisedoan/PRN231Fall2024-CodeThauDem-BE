@@ -25,61 +25,80 @@ namespace FlightEaseDB.BusinessLogic.Services
 	{
 		private readonly IUserRepository _userRepository;
 		private readonly JwtTokenHelper _jwtTokenHelper;
-		public UserService(IUserRepository userRepository, JwtTokenHelper jwtTokenHelper)
+        private readonly IMembershipRepository _membershipRepository;
+        public UserService(IUserRepository userRepository, JwtTokenHelper jwtTokenHelper, IMembershipRepository membershipRepository)
 		{
 			_userRepository = userRepository;
 			_jwtTokenHelper = jwtTokenHelper;
+			_membershipRepository = membershipRepository;
 		}
-		public CreateUserDTO CreateUser(CreateUserDTO userCreate)
-		{
-			userCreate.Role = UserRole.Manager.ToString();
+        public CreateUserDTO CreateUser(CreateUserDTO userCreate)
+        {
+            // Kiểm tra email đã tồn tại chưa
+            var existingUser = _userRepository.FirstOrDefault(u => u.Email == userCreate.Email);
+            if (existingUser != null)
+            {
+                throw new Exception("Email already exists"); // Hoặc trả về một thông báo lỗi phù hợp
+            }
 
-			// Tạo mới đối tượng User
-			var user = new User
-			{
-				Email = userCreate.Email,
-				Password = userCreate.Password,
-				Gender = userCreate.Gender,
-				Address = userCreate.Address,
-				Fullname = userCreate.Fullname,
-				Dob = userCreate.Dob,
-				Role = userCreate.Role,
-				Status = userCreate.Status,
-			};
+            // Gán vai trò cho user mới
+            userCreate.Role = UserRole.Manager.ToString();
 
-			// Thực hiện tạo user mới
-			_userRepository.Create(user);
-			_userRepository.Save();
+            // Tạo mới đối tượng User
+            var user = new User
+            {
+                Email = userCreate.Email,
+                Password = userCreate.Password,
+                Gender = userCreate.Gender,
+                Address = userCreate.Address,
+                Fullname = userCreate.Fullname,
+                Dob = userCreate.Dob,
+                Role = userCreate.Role,
+                Status = userCreate.Status,
+            };
 
-			return userCreate;
-		}
+            // Thực hiện tạo user mới
+            _userRepository.Create(user);
+            _userRepository.Save();
+
+            return userCreate;
+        }
 
 
-		public UserDTO UpdateUser(UserDTO userUpdate)
-		{
-			var user = _userRepository.Get(userUpdate.UserId);
-			if (user == null) return null;
 
-			// Cập nhật các trường
-			user.Email = userUpdate.Email;
-			user.Password = userUpdate.Password;
-			user.Gender = userUpdate.Gender;
-			user.Nationality = userUpdate.Nationality;
-			user.Address = userUpdate.Address;
-			user.Fullname = userUpdate.Fullname;
-			user.Dob = userUpdate.Dob;
-			user.Role = userUpdate.Role;
-			user.MembershipId = userUpdate.MembershipId;
-			user.Status = userUpdate.Status;
+        public UserDTO UpdateUser(UserDTO userUpdate)
+        {
+            var user = _userRepository.Get(userUpdate.UserId);
+            if (user == null) return null;
 
-			// Gọi phương thức update từ BaseRepository
-			_userRepository.Update(user);
-			_userRepository.Save();
+            // Cập nhật các trường
+            user.Email = userUpdate.Email;
+            user.Password = userUpdate.Password;
+            user.Gender = userUpdate.Gender;
+            user.Nationality = userUpdate.Nationality;
+            user.Address = userUpdate.Address;
+            user.Fullname = userUpdate.Fullname;
+            user.Dob = userUpdate.Dob;
+            user.Role = userUpdate.Role;
 
-			return userUpdate;
-		}
+            // Lấy MembershipId từ Rank
+            var membership = _membershipRepository.FirstOrDefault(m => m.Rank == userUpdate.Rank);
+            if (membership != null)
+            {
+                user.MembershipId = membership.MembershipId;
+            }
 
-		public bool DeleteUser(int idTmp)
+            user.Status = userUpdate.Status;
+
+            // Gọi phương thức update từ BaseRepository
+            _userRepository.Update(user);
+            _userRepository.Save();
+
+            return userUpdate;
+        }
+
+
+        public bool DeleteUser(int idTmp)
 		{
 			var user = _userRepository.Get(idTmp);
 			if (user == null) return false;
@@ -91,52 +110,65 @@ namespace FlightEaseDB.BusinessLogic.Services
 			return true;
 		}
 
-		public List<UserDTO> GetAll()
-		{
-			// Gọi phương thức lấy tất cả từ BaseRepository
-			var users = _userRepository.Get().ToList();
-			var userDtos = users.Select(user => new UserDTO
-			{
-				UserId = user.UserId,
-				Email = user.Email,
-				Gender = user.Gender,
-				Nationality = user.Nationality,
-				Address = user.Address,
-				Fullname = user.Fullname,
-				Dob = user.Dob,
-				Role = user.Role,
-				MembershipId = user.MembershipId,
-				Status = user.Status
-			}).ToList();
+        public List<UserDTO> GetAll()
+        {
+            // Gọi phương thức lấy tất cả từ BaseRepository
+            var users = _userRepository.Get().ToList();
+            var userDtos = users.Select(user =>
+            {
+                var membership = _membershipRepository.Get(user.MembershipId);
+                var rank = membership != null ? membership.Rank : null;
 
-			return userDtos;
-		}
+                // Chuyển đổi entity sang DTO
+                return new UserDTO
+                {
+                    UserId = user.UserId,
+                    Email = user.Email,
+                    Gender = user.Gender,
+                    Nationality = user.Nationality,
+                    Address = user.Address,
+                    Fullname = user.Fullname,
+                    Dob = user.Dob,
+                    Role = user.Role,
+                    Rank = rank, // Hiển thị Rank thay vì MembershipId
+                    Status = user.Status
+                };
+            }).ToList();
 
-		public UserDTO GetById(int idTmp)
-		{
-			// Gọi phương thức lấy đối tượng theo ID từ BaseRepository
-			var user = _userRepository.Get(idTmp);
-			if (user == null) return null;
-
-			// Chuyển đổi entity sang DTO
-			return new UserDTO
-			{
-				UserId = user.UserId,
-				Email = user.Email,
-				Gender = user.Gender,
-				Nationality = user.Nationality,
-				Address = user.Address,
-				Fullname = user.Fullname,
-				Dob = user.Dob,
-				Role = user.Role,
-				MembershipId = user.MembershipId,
-				Status = user.Status
-			};
-		}
+            return userDtos;
+        }
 
 
-		#region Register
-		public async Task<ResultModel> Register(RegisterDTO userRegister)
+        public UserDTO GetById(int idTmp)
+        {
+            // Gọi phương thức lấy đối tượng theo ID từ BaseRepository
+            var user = _userRepository.Get(idTmp);
+            if (user == null) return null;
+
+            // Lấy Membership từ MembershipId và chuyển đổi sang Rank
+            var membership = _membershipRepository.Get(user.MembershipId);
+            var rank = membership != null ? membership.Rank : null;
+
+            // Chuyển đổi entity sang DTO
+            return new UserDTO
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                Gender = user.Gender,
+                Nationality = user.Nationality,
+                Address = user.Address,
+                Fullname = user.Fullname,
+                Dob = user.Dob,
+                Role = user.Role,
+                Rank = rank, // Sử dụng Rank thay vì MembershipId
+                Status = user.Status
+            };
+        }
+
+
+
+        #region Register
+        public async Task<ResultModel> Register(RegisterDTO userRegister)
 		{
 			var result = new ResultModel();
 
