@@ -8,26 +8,26 @@ namespace FlightEaseDB.Presentation.Controllers
     [ApiController]
     [ApiVersion("1")]
     [Route("/api/v1/orders")]
-    public class OrderController : ControllerBase {
+    public class OrderController : ControllerBase
+    {
 
         private IOrderService _orderService;
 
-         public OrderController(IOrderService orderService)
+        public OrderController(IOrderService orderService)
         {
             _orderService = orderService;
         }
 
         [MapToApiVersion("1")]
         [HttpPost]
-        public ActionResult<OrderDTO> CreateOrder(OrderDTO orderCreate)
+        public async Task<ActionResult<ResultModel>> CreateOrder(OrderDTO orderCreate)
         {
-            var orderCreated = _orderService.CreateOrder(orderCreate);
-
-            if (orderCreated == null)
+            var result = await _orderService.CreateOrder(orderCreate);
+            if (result.IsSuccess)
             {
-                return NotFound("");
+                return Ok(result);
             }
-            return orderCreated;
+            return BadRequest(result);
         }
 
         [MapToApiVersion("1")]

@@ -8,6 +8,13 @@
     {
         Available,
         InUse,
+        Done,
         Cancelled
+    }
+
+    public enum TripType
+    {
+        OneWay,
+        RoundTrip
     }
 }

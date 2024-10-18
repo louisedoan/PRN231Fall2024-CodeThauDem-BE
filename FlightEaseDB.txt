@@ -65,7 +65,6 @@ CREATE TABLE [Order] (
     OrderID INT IDENTITY(1,1) PRIMARY KEY,
     UserID INT,
     OrderDate DATETIME,
-    TripType VARCHAR(50),
     Status VARCHAR(50),
     TotalPrice FLOAT,
     FOREIGN KEY (UserID) REFERENCES [User](UserID)
@@ -79,6 +78,7 @@ CREATE TABLE OrderDetail (
     Nationality VARCHAR(100),
     Email VARCHAR(100),
     FlightID INT,
+    TripType VARCHAR(50),
     SeatID INT,
     Status VARCHAR(50),
     TotalAmount FLOAT,
@@ -95,15 +95,6 @@ CREATE TABLE Payment (
     Status VARCHAR(50),
     Amount FLOAT,
     FOREIGN KEY (OrderID) REFERENCES [Order](OrderID)
-);
-
-CREATE TABLE Refund (
-    RefundID INT IDENTITY(1,1) PRIMARY KEY,
-    OrderDetailID INT,
-    RefundDate DATETIME,
-    Amount FLOAT,
-    Status VARCHAR(50),
-    FOREIGN KEY (OrderDetailID) REFERENCES [OrderDetail](OrderDetailID)
 );
 
 CREATE TABLE RefreshToken (

@@ -19,6 +19,8 @@ public partial class OrderDetail
 
     public int? FlightId { get; set; }
 
+    public string? TripType { get; set; }
+
     public int? SeatId { get; set; }
 
     public string? Status { get; set; }
@@ -28,8 +30,6 @@ public partial class OrderDetail
     public virtual Flight? Flight { get; set; }
 
     public virtual Order? Order { get; set; }
-
-    public virtual ICollection<Refund> Refunds { get; set; } = new List<Refund>();
 
     public virtual Seat? Seat { get; set; }
 }

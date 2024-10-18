@@ -15,21 +15,10 @@ namespace FlightEaseDB.Presentation.Controllers
             _seatService = seatService;
         }
 
-        [HttpGet("business/{flightId}")]
-        public async Task<IActionResult> GetBusinessClassSeats(int flightId)
+        [HttpGet("{flightId}")]
+        public async Task<IActionResult> GetClassSeats(int flightId)
         {
-            var result = await _seatService.GetBusinessClassSeatsAsync(flightId);
-            if (result.IsSuccess)
-            {
-                return Ok(result);
-            }
-            return StatusCode(result.StatusCode, result);
-        }
-
-        [HttpGet("economy/{flightId}")]
-        public async Task<IActionResult> GetEconomyClassSeats(int flightId)
-        {
-            var result = await _seatService.GetEconomyClassSeatsAsync(flightId);
+            var result = await _seatService.GetSeatsAsync(flightId);
             if (result.IsSuccess)
             {
                 return Ok(result);
