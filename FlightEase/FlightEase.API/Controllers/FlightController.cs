@@ -34,7 +34,7 @@ namespace FlightEase.Presentation.Controllers
 
         [MapToApiVersion("1")]
         [HttpGet]
-        public ActionResult<List<FlightDTO>> GetAll()
+        public ActionResult<List<FlightDTO>> GetAllReport()
         {
             var flightList = _flightService.GetAll();
 
@@ -113,6 +113,20 @@ namespace FlightEase.Presentation.Controllers
                 return NotFound("No flights found for the given criteria.");
             }
             return Ok(flights);
+        }
+
+        [MapToApiVersion("1")]
+        [HttpGet("get-all-flightReport")]
+        public async Task<ActionResult<ResultModel>> GetAll()
+        {
+            var result = await _flightService.GetAllFlightReports();
+
+            if (result.IsSuccess)
+            {
+                return Ok(result);
+            }
+
+            return BadRequest();
         }
 
     }
