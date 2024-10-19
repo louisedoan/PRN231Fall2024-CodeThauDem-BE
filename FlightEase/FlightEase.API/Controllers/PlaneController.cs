@@ -1,6 +1,7 @@
 using BusinessObjects.DTOs;
 using FlightEaseDB.BusinessLogic.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
 
 namespace FlightEaseDB.Presentation.Controllers
 {
@@ -80,6 +81,20 @@ namespace FlightEaseDB.Presentation.Controllers
                 return NotFound("");
             }
             return planeUpdated;
+        }
+
+        [MapToApiVersion("1")]
+
+        [HttpGet("sreachPlane")]
+        public ActionResult<List<PlaneDTO>> SreachPlane(ODataQueryOptions<PlaneDTO> queryOptions, [FromQuery] string status = null)
+        {
+            var planeDTOs = _planeService.GetSuitablePlane();
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                planeDTOs = planeDTOs.Where(p => p.Status.Contains(status)).ToList();
+            }
+            return planeDTOs;
         }
     }
 
