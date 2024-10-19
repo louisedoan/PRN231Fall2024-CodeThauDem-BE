@@ -41,7 +41,7 @@ public class FlightService : IFlightService
         var flight = new Flight
         {
             FlightId = flightCreate.FlightId,
-
+            PlaneId = flightCreate.PlaneId,
             FlightNumber = flightCreate.FlightNumber,
             DepartureLocation = flightCreate.DepartureLocation,
             DepartureTime = flightCreate.DepartureTime,
