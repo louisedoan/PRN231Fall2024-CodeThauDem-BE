@@ -10,6 +10,8 @@ namespace FlightEaseDB.BusinessLogic.Services
         public bool DeletePlane(int idTmp);
         public List<PlaneDTO> GetAll();
         public PlaneDTO GetById(int idTmp);
+        public List<PlaneDTO> GetSuitablePlane();
+
     }
 
     public class PlaneService : IPlaneService {
@@ -44,6 +46,20 @@ namespace FlightEaseDB.BusinessLogic.Services
         public PlaneDTO GetById(int idTmp) 
         {
             throw new NotImplementedException();
+        }
+        public List<PlaneDTO> GetSuitablePlane()
+        {
+            var plane = _planeRepository.Get();
+
+            var planeDTO = plane.Select(x => new PlaneDTO
+            {
+                PlaneId = x.PlaneId,
+                PlaneCode = x.PlaneCode,
+                Status = x.Status,
+                TotalSeats = x.TotalSeats
+            }).ToList();
+
+            return planeDTO;
         }
 
     }

@@ -15,7 +15,16 @@ INSERT INTO [User] (Email, Password, Gender, Nationality, Address, Fullname, DOB
 INSERT INTO Plane (PlaneCode, TotalSeats, Status) VALUES 
 ('Plane001', 42, 'Active'),
 ('Plane002', 42, 'Active');
-
+-- Insert data into FlightRoute table
+INSERT INTO FlightRoute (Location) VALUES 
+('SGN'),
+('HANOI'),
+('LONGTHANH');
+-- Insert data into Flight table for flights on 19/10
+INSERT INTO Flight (FlightNumber, PlaneID, DepartureLocation, DepartureTime, ArrivalLocation, ArrivalTime, FlightStatus) VALUES
+(101, 1, 1, '2024-10-19 08:00:00', 2, '2024-10-19 18:00:00', 'Available'),
+(102, 2, 2, '2024-10-19 09:00:00', 3, '2024-10-19 23:00:00', 'Available'),
+(103, 1, 3, '2024-10-19 10:00:00', 1, '2024-10-19 20:00:00', 'Available');
 -- Insert data into Seat table for Plane 1
 DECLARE @i INT = 1;
 WHILE @i <= 42

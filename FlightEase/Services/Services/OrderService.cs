@@ -1,13 +1,15 @@
-﻿using BusinessObjects.DTOs;
+using BusinessObjects.DTOs;
 using BusinessObjects.Entities;
+using BusinessObjects.Enums;
 using Repositories.Repositories;
+using Services.Helpers;
 
 namespace FlightEaseDB.BusinessLogic.Services
 {
 
     public interface IOrderService
     {
-        public OrderDTO CreateOrder(OrderDTO orderCreate);
+        public Task<ResultModel> CreateOrder(OrderCreateDTO orderCreate);
         public OrderDTO UpdateOrder(OrderDTO orderUpdate);
         public bool DeleteOrder(int idTmp);
         public List<OrderDTO> GetAll();
@@ -16,37 +18,146 @@ namespace FlightEaseDB.BusinessLogic.Services
 
     public class OrderService : IOrderService
     {
-        private readonly IOrderRepository _orderRepository;
-        private readonly IFlightRepository _flightRepository;
 
-        public OrderService(IOrderRepository orderRepository, IFlightRepository flightRepository)
+        private readonly IOrderRepository _orderRepository;
+        private readonly ISeatRepository _seatRepository;
+        private readonly IFlightRepository _flightRepository;
+        private readonly IOrderDetailRepository _orderDetailRepository;
+        private readonly JwtTokenHelper _jwtTokenHelper;
+
+        public OrderService(IOrderRepository orderRepository, ISeatRepository seatRepository, IFlightRepository flightRepository, IOrderDetailRepository orderDetailRepository, JwtTokenHelper jwtTokenHelper)
         {
             _orderRepository = orderRepository;
+            _seatRepository = seatRepository;
             _flightRepository = flightRepository;
+            _orderDetailRepository = orderDetailRepository;
+            _jwtTokenHelper = jwtTokenHelper;
         }
 
-        public OrderDTO CreateOrder(OrderDTO orderCreate)
+        public async Task<ResultModel> CreateOrder(OrderCreateDTO orderCreate)
         {
-            var orderEntity = new Order
+            try
             {
-                UserId = orderCreate.UserId,
-                OrderDate = orderCreate.OrderDate,
-                TripType = orderCreate.TripType,
-                Status = orderCreate.Status,
-                TotalPrice = orderCreate.TotalPrice,
-                /*OrderDetails = orderCreate.OrderDetails.Select(od => new OrderDetail
+                var order = new Order
                 {
-                    FlightId = od.FlightId,
-                    Price = od.Price,
-                    Quantity = od.Quantity
-                }).ToList()*/
-            };
+                    UserId = orderCreate.UserId,
+                    OrderDate = DateTime.Now,
+                    Status = OrderEnums.Pending.ToString(),
+                    TotalPrice = orderCreate.TotalPrice
+                };
 
-            _orderRepository.Create(orderEntity);
-            _orderRepository.Save();
+                foreach (var passenger in orderCreate.Passengers)
+                {
+                    if (passenger.FlightId == null || passenger.SeatId == null)
+                    {
+                        return new ResultModel
+                        {
+                            IsSuccess = false,
+                            Message = "FlightId and SeatId cannot be null",
+                            StatusCode = 400,
+                            Data = null
+                        };
+                    }
 
-            return MapOrderToDTO(orderEntity, _flightRepository);
+                    if (passenger.DoB < new DateTime(1950, 1, 1) || passenger.DoB > new DateTime(2024, 12, 31))
+                    {
+                        return new ResultModel
+                        {
+                            IsSuccess = false,
+                            Message = "DoB must be between 1/1/1950 and 31/12/2024",
+                            StatusCode = 400,
+                            Data = null
+                        };
+                    }
+
+                    if (passenger.Price <= 0)
+                    {
+                        return new ResultModel
+                        {
+                            IsSuccess = false,
+                            Message = "Price must be greater than 0",
+                            StatusCode = 400,
+                            Data = null
+                        };
+                    }
+
+                    var flight = await _flightRepository.GetAsync(passenger.FlightId.Value);
+                    var seat = await _seatRepository.GetAsync(passenger.SeatId.Value);
+
+                    if (seat.Status == SeatEnums.Taken.ToString())
+                    {
+                        return new ResultModel
+                        {
+                            IsSuccess = false,
+                            Message = $"Seat {seat.SeatId} is already taken",
+                            StatusCode = 400,
+                            Data = null
+                        };
+                    }
+
+                    var orderDetail = new OrderDetail
+                    {
+                        Order = order,
+                        Name = passenger.Name ?? throw new ArgumentNullException(nameof(passenger.Name)),
+                        DoB = passenger.DoB,
+                        Nationality = passenger.Nationality,
+                        Email = passenger.Email,
+                        FlightId = flight.FlightId,
+                        TripType = passenger.TripType ?? throw new ArgumentNullException(nameof(passenger.TripType)),
+                        SeatId = seat.SeatId,
+                        Status = OrderDetailEnums.Pending.ToString(),
+                        TotalAmount = passenger.Price
+                    };
+
+                    order.OrderDetails.Add(orderDetail);
+
+                    seat.Status = SeatEnums.Taken.ToString();
+                    _seatRepository.Update(seat);
+                }
+
+                await _orderRepository.CreateAsync(order);
+                await _orderRepository.SaveAsync();
+
+                return new ResultModel
+                {
+                    IsSuccess = true,
+                    Message = "Order created successfully",
+                    Data = new OrderCreateDTO
+                    {
+                        OrderId = order.OrderId,
+                        UserId = order.UserId,
+                        OrderDate = order.OrderDate,
+                        Status = order.Status,
+                        TotalPrice = order.TotalPrice,
+                        OrderDetails = order.OrderDetails.Select(od => new OrderDetailDTO
+                        {
+                            OrderDetailId = od.OrderDetailId,
+                            Name = od.Name ?? throw new ArgumentNullException(nameof(od.Name)),
+                            DoB = od.DoB,
+                            Nationality = od.Nationality,
+                            Email = od.Email,
+                            FlightId = od.FlightId,
+                            TripType = od.TripType ?? throw new ArgumentNullException(nameof(od.TripType)),
+                            SeatId = od.SeatId,
+                            Status = od.Status ?? throw new ArgumentNullException(nameof(od.Status)),
+                            TotalAmount = od.TotalAmount
+                        }).ToList()
+                    },
+                    StatusCode = 201
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResultModel
+                {
+                    IsSuccess = false,
+                    Message = ex.Message,
+                    StatusCode = 500
+                };
+            }
         }
+
+
 
         public OrderDTO UpdateOrder(OrderDTO orderUpdate)
         {
@@ -55,7 +166,6 @@ namespace FlightEaseDB.BusinessLogic.Services
 
             existingOrder.UserId = orderUpdate.UserId;
             existingOrder.OrderDate = orderUpdate.OrderDate;
-            existingOrder.TripType = orderUpdate.TripType;
             existingOrder.Status = orderUpdate.Status;
             existingOrder.TotalPrice = orderUpdate.TotalPrice;
 
@@ -96,7 +206,6 @@ namespace FlightEaseDB.BusinessLogic.Services
                 OrderId = order.OrderId,
                 UserId = order.UserId,
                 OrderDate = order.OrderDate,
-                TripType = order.TripType,
                 Status = order.Status,
                 TotalPrice = order.TotalPrice
             };

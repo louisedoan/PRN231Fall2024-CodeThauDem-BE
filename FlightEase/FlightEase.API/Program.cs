@@ -65,6 +65,7 @@ builder.Services.AddCors(options =>
 
 
 // Configure JWT Authentication
+builder.Services.AddAuthorization();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]);
@@ -90,6 +91,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddSingleton<JwtTokenHelper>();
 

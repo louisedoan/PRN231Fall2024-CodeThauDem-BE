@@ -20,23 +20,14 @@ namespace FlightEaseDB.Presentation.Controllers
         // Tạo mới đơn hàng
         [MapToApiVersion("1")]
         [HttpPost]
-        public ActionResult CreateOrder(OrderDTO orderCreate)
+        public async Task<ActionResult<ResultModel>> CreateOrder(OrderCreateDTO orderCreate)
         {
-            try
+            var result = await _orderService.CreateOrder(orderCreate);
+            if (result.IsSuccess)
             {
-                var orderCreated = _orderService.CreateOrder(orderCreate);
-
-                if (orderCreated == null)
-                {
-                    return BadRequest(new { message = "Failed to create the order." });
-                }
-
-                return Ok(new { message = "Order created successfully.", order = orderCreated });
+                return Ok(result);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "An error occurred while creating the order.", error = ex.Message });
-            }
+            return BadRequest(result);
         }
 
         // Lấy tất cả các đơn hàng
