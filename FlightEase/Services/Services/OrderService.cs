@@ -1,6 +1,7 @@
 using BusinessObjects.DTOs;
 using BusinessObjects.Entities;
 using BusinessObjects.Enums;
+using Microsoft.EntityFrameworkCore;
 using Repositories.Repositories;
 using Services.Helpers;
 
@@ -14,6 +15,7 @@ namespace FlightEaseDB.BusinessLogic.Services
         public bool DeleteOrder(int idTmp);
         public List<OrderDTO> GetAll();
         public OrderDTO GetById(int idTmp);
+        public List<OrderDTO> GetOrderByUserId(int id);
     }
 
     public class OrderService : IOrderService
@@ -220,6 +222,46 @@ namespace FlightEaseDB.BusinessLogic.Services
 
             return orderDTO;
         }
+        public List<OrderDTO> GetOrderByUserId(int id)
+        {
+    
+            var orderReturn = _orderRepository
+                .Get()
+                .Where(o => o.UserId == id)
+                .Include(o => o.OrderDetails)
+                .ToList();
+
+            if (orderReturn == null || orderReturn.Count == 0)
+                return null;
+
+            List<OrderDTO> ordersList = new List<OrderDTO>();
+
+            foreach (var order in orderReturn)
+            {
+                var orderDTO = new OrderDTO
+                {
+                    OrderId = order.OrderId,
+                    OrderDate = order.OrderDate,
+                    Status = order.Status,
+                    TotalPrice = order.TotalPrice,
+              
+                    OrderDetails = order.OrderDetails.Select(od => new OrderDetailDTO
+                    {
+                        OrderDetailId = od.OrderDetailId,
+                        FlightId = od.FlightId,
+                        TripType = od.TripType,
+                        SeatId = od.SeatId,
+                        Status = od.Status,
+                        TotalAmount = od.TotalAmount
+                    }).ToList()
+                };
+     
+                ordersList.Add(orderDTO);
+            }
+
+            return ordersList;
+        }
+
     }
 
 }

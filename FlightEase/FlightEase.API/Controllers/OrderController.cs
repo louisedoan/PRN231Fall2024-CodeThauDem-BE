@@ -117,6 +117,29 @@ namespace FlightEaseDB.Presentation.Controllers
                 return StatusCode(500, new { message = "An error occurred while updating the order.", error = ex.Message });
             }
         }
+        [MapToApiVersion("1")]
+        [HttpGet("userId={id}")]
+        public ActionResult GetOrderByUserId(int id)
+        {
+            try
+            {
+                var orders = _orderService.GetOrderByUserId(id);
+
+                if (orders == null)
+                {
+                    return NotFound(new { message = $"Order with ID {id} not found." });
+                }
+
+                return Ok(new { message = "Order retrieved successfully.", order = orders });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while retrieving the order.", error = ex.Message });
+            }
+        }
+        
+
+        
     }
 
 
