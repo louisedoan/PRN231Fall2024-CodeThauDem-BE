@@ -38,6 +38,9 @@ public class FlightService : IFlightService
 
     public FlightDTO CreateFlight(FlightDTO flightCreate)
     {
+       
+
+       
         var flight = new Flight
         {
             FlightId = flightCreate.FlightId,
@@ -48,22 +51,34 @@ public class FlightService : IFlightService
             ArrivalLocation = flightCreate.ArrivalLocation,
             ArrivalTime = flightCreate.ArrivalTime,
             FlightStatus = flightCreate.FlightStatus,
-
         };
+
+        
         _flightRepository.Create(flight);
         _flightRepository.Save();
+
+       
+        var plane = _planeRepository.Get().FirstOrDefault(p => p.PlaneId == flightCreate.PlaneId);
+        if (plane != null)
+        {
+            
+            plane.Status = PlaneStatus.InUse.ToString(); 
+            _planeRepository.Update(plane);
+            _planeRepository.Save(); 
+        }
+
+        
         var flightDTO = new FlightDTO
         {
             FlightId = flight.FlightId,
-
             FlightNumber = flight.FlightNumber,
             DepartureLocation = flight.DepartureLocation,
             DepartureTime = flight.DepartureTime,
             ArrivalLocation = flight.ArrivalLocation,
             ArrivalTime = flight.ArrivalTime,
             FlightStatus = flight.FlightStatus,
-
         };
+
         return flightDTO;
     }
 
