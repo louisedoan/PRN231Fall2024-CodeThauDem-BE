@@ -40,7 +40,7 @@ public class FlightService : IFlightService
     {
        
 
-        // Tạo một đối tượng chuyến bay mới
+       
         var flight = new Flight
         {
             FlightId = flightCreate.FlightId,
@@ -53,21 +53,21 @@ public class FlightService : IFlightService
             FlightStatus = flightCreate.FlightStatus,
         };
 
-        // Tạo chuyến bay mới
+        
         _flightRepository.Create(flight);
         _flightRepository.Save();
 
-        // Tìm máy bay đã chọn theo PlaneId
+       
         var plane = _planeRepository.Get().FirstOrDefault(p => p.PlaneId == flightCreate.PlaneId);
         if (plane != null)
         {
-            // Cập nhật trạng thái máy bay thành "InUse"
-            plane.Status = PlaneStatus.InUse.ToString(); // PlaneStatus.InUse là giá trị Enum tượng trưng cho trạng thái máy bay
+            
+            plane.Status = PlaneStatus.InUse.ToString(); 
             _planeRepository.Update(plane);
-            _planeRepository.Save(); // Lưu trạng thái thay đổi của máy bay
+            _planeRepository.Save(); 
         }
 
-        // Chuyển đổi thành DTO để trả về
+        
         var flightDTO = new FlightDTO
         {
             FlightId = flight.FlightId,
