@@ -38,6 +38,9 @@ public class FlightService : IFlightService
 
     public FlightDTO CreateFlight(FlightDTO flightCreate)
     {
+       
+
+        // Tạo một đối tượng chuyến bay mới
         var flight = new Flight
         {
             FlightId = flightCreate.FlightId,
@@ -48,22 +51,34 @@ public class FlightService : IFlightService
             ArrivalLocation = flightCreate.ArrivalLocation,
             ArrivalTime = flightCreate.ArrivalTime,
             FlightStatus = flightCreate.FlightStatus,
-
         };
+
+        // Tạo chuyến bay mới
         _flightRepository.Create(flight);
         _flightRepository.Save();
+
+        // Tìm máy bay đã chọn theo PlaneId
+        var plane = _planeRepository.Get().FirstOrDefault(p => p.PlaneId == flightCreate.PlaneId);
+        if (plane != null)
+        {
+            // Cập nhật trạng thái máy bay thành "InUse"
+            plane.Status = PlaneStatus.InUse.ToString(); // PlaneStatus.InUse là giá trị Enum tượng trưng cho trạng thái máy bay
+            _planeRepository.Update(plane);
+            _planeRepository.Save(); // Lưu trạng thái thay đổi của máy bay
+        }
+
+        // Chuyển đổi thành DTO để trả về
         var flightDTO = new FlightDTO
         {
             FlightId = flight.FlightId,
-
             FlightNumber = flight.FlightNumber,
             DepartureLocation = flight.DepartureLocation,
             DepartureTime = flight.DepartureTime,
             ArrivalLocation = flight.ArrivalLocation,
             ArrivalTime = flight.ArrivalTime,
             FlightStatus = flight.FlightStatus,
-
         };
+
         return flightDTO;
     }
 
