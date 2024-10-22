@@ -43,12 +43,14 @@ namespace Services.VnPay
             {
                 if (!string.IsNullOrEmpty(kv.Value))
                 {
+                    Console.WriteLine($"{kv.Key}={kv.Value}");  // In ra các tham số
                     data.Append(WebUtility.UrlEncode(kv.Key) + "=" + WebUtility.UrlEncode(kv.Value) + "&");
                 }
             }
 
             string queryString = data.ToString().TrimEnd('&');
             string vnp_SecureHash = Utils.HmacSHA512(vnp_HashSecret, queryString);
+            Console.WriteLine($"Generated SecureHash: {vnp_SecureHash}");  // Kiểm tra lại SecureHash
             string paymentUrl = $"{baseUrl}?{queryString}&vnp_SecureHash={vnp_SecureHash}";
 
             return paymentUrl;
@@ -62,8 +64,15 @@ namespace Services.VnPay
         {
             string rspRaw = GetResponseDataString();
             string myChecksum = Utils.HmacSHA512(secretKey, rspRaw);
+
+            // Debug để kiểm tra quá trình tính toán Secure Hash
+            Console.WriteLine($"Input Hash: {inputHash}");
+            Console.WriteLine($"Generated Hash: {myChecksum}");
+
             return myChecksum.Equals(inputHash, StringComparison.InvariantCultureIgnoreCase);
         }
+
+
 
         private string GetResponseDataString()
         {
@@ -78,10 +87,11 @@ namespace Services.VnPay
 
             if (data.Length > 0)
             {
-                data.Remove(data.Length - 1, 1); // remove last '&'
+                data.Remove(data.Length - 1, 1); // loại bỏ ký tự '&' cuối cùng
             }
             return data.ToString();
         }
+
 
         #endregion
     }
