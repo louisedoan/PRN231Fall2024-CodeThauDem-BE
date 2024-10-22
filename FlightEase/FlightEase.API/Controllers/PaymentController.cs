@@ -1,7 +1,7 @@
 ﻿using BusinessObjects.DTOs;
 using FlightEaseDB.BusinessLogic.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
+using Services.VnPay;
 
 namespace FlightEaseDB.Presentation.Controllers
 {
@@ -12,10 +12,12 @@ namespace FlightEaseDB.Presentation.Controllers
     public class PaymentController : ControllerBase
     {
         private IPaymentService _paymentService;
+        private readonly IVnPayService _vnPayService;
 
-        public PaymentController(IPaymentService paymentService)
+        public PaymentController(IPaymentService paymentService, IVnPayService vnPayService)
         {
             _paymentService = paymentService;
+            _vnPayService = vnPayService;
         }
 
         // Tạo thanh toán mới
@@ -25,8 +27,8 @@ namespace FlightEaseDB.Presentation.Controllers
         {
             try
             {
-                var paymentCreated = _paymentService.CreatePayment(paymentCreate, HttpContext); // Truyền HttpContext để lấy IP và tạo URL VNPay
-                return Ok(paymentCreated); // Trả về DTO bao gồm URL thanh toán
+                var paymentCreated = _paymentService.CreatePayment(paymentCreate, HttpContext);
+                return Ok(paymentCreated);
             }
             catch (Exception ex)
             {
@@ -85,22 +87,23 @@ namespace FlightEaseDB.Presentation.Controllers
             }
         }
 
-        // Xử lý callback từ VNPay sau khi thanh toán
         [HttpGet("vnpay_return")]
-        public IActionResult VnPayReturn(string txnRef, string responseCode, string secureHash)
+        public IActionResult VnPayReturn()
         {
             try
             {
-                // Gọi service để xử lý callback từ VNPay
-                var paymentResult = _paymentService.ProcessVnPayCallBack(HttpContext.Request.Query);
+                // Process the payment response using VnPayService
+                var paymentResult = _vnPayService.PaymentResponse(HttpContext.Request.Query);
 
-                if (paymentResult)
+                // Check if the payment was successful
+                if (paymentResult.ResponseCode == "00")
                 {
-                    return Ok(new { status = "success", message = "Thanh toán thành công" });
+                    return Ok(paymentResult);
+
                 }
                 else
                 {
-                    return BadRequest(new { status = "fail", message = "Thanh toán thất bại" });
+                    return BadRequest(new { status = "fail", message = "Payment failed" });
                 }
             }
             catch (Exception ex)

@@ -27,7 +27,7 @@ namespace FlightEaseDB.BusinessLogic.Services
         {
             _paymentRepository = paymentRepository;
             _orderRepository = orderRepository;
-            _vnPayService = vnPayService; // Khởi tạo VnPayService
+            _vnPayService = vnPayService;
         }
 
         // Tạo Payment mới từ thông tin Order
@@ -44,13 +44,11 @@ namespace FlightEaseDB.BusinessLogic.Services
             var payment = new Payment
             {
                 OrderId = paymentCreate.OrderId,
-                PaymentDate = DateTime.Now,
-                PaymentMethod = paymentCreate.PaymentMethod,
+                PaymentDate = null,
                 Status = "Pending",
                 Amount = order.TotalPrice // Lấy TotalPrice của đơn hàng để làm số tiền thanh toán
             };
 
-            // Tạo Payment mới
             var createdPayment = _paymentRepository.Create(payment);
             _paymentRepository.Save();
 
@@ -89,7 +87,6 @@ namespace FlightEaseDB.BusinessLogic.Services
             if (payment == null) throw new Exception("Payment not found");
 
             // Cập nhật thông tin Payment
-            payment.PaymentMethod = paymentUpdate.PaymentMethod;
             payment.Status = paymentUpdate.Status;
             payment.Amount = paymentUpdate.Amount;
             payment.PaymentDate = paymentUpdate.PaymentDate;
@@ -157,6 +154,7 @@ namespace FlightEaseDB.BusinessLogic.Services
             if (payment == null) return false;
 
             payment.Status = statusCode == "00" ? "Success" : "Failed";
+            payment.PaymentDate = DateTime.Now;
             _paymentRepository.Update(payment);
             _paymentRepository.Save();
 

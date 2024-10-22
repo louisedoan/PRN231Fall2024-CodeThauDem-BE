@@ -32,7 +32,7 @@ namespace Services.VnPay
             vnpay.AddRequestData("vnp_CurrCode", "VND");
             vnpay.AddRequestData("vnp_IpAddr", Utils.GetIpAddress(context));
             vnpay.AddRequestData("vnp_Locale", "vn");
-            vnpay.AddRequestData("vnp_OrderInfo", "Order ID:" + model.ServiceId);
+            vnpay.AddRequestData("vnp_OrderInfo", "Order ID:" + model.OrderId);
             vnpay.AddRequestData("vnp_OrderType", "billpayment");
             vnpay.AddRequestData("vnp_ReturnUrl", _configuration["VnPay:ReturnUrl"]);
             vnpay.AddRequestData("vnp_TxnRef", tick);
@@ -61,24 +61,17 @@ namespace Services.VnPay
             var vnp_ResponseCode = vnpay.GetResponseData("vnp_ResponseCode");
             var vnp_OrderInfo = vnpay.GetResponseData("vnp_OrderInfo");
 
-            // Debug để kiểm tra giá trị của Secure Hash và Response Code
-            Console.WriteLine($"vnp_orderId: {vnp_orderId}");
-            Console.WriteLine($"vnp_SecureHash: {vnp_SecureHash}");
-            Console.WriteLine($"vnp_ResponseCode: {vnp_ResponseCode}");
-
-            // Kiểm tra tính hợp lệ của chữ ký bảo mật
             bool checkSignature = vnpay.ValidateSignature(vnp_SecureHash, _configuration["VnPay:HashSecret"]);
             if (!checkSignature)
             {
                 return new VnPaymentResponseModel
                 {
                     Status = false,
-                    Message = "Sai chữ ký bảo mật"
+                    Message = "Invalid Signature"
                 };
             }
 
-            // Kiểm tra mã phản hồi từ VNPay
-            if (vnp_ResponseCode == "00") // "00" là mã phản hồi thanh toán thành công
+            if (vnp_ResponseCode == "00")
             {
                 return new VnPaymentResponseModel
                 {
@@ -86,7 +79,7 @@ namespace Services.VnPay
                     TransactionId = vnp_orderId,
                     Description = vnp_OrderInfo,
                     ResponseCode = vnp_ResponseCode,
-                    Message = "Thanh toán thành công"
+                    Message = "Purchase successfully"
                 };
             }
             else
@@ -94,7 +87,7 @@ namespace Services.VnPay
                 return new VnPaymentResponseModel
                 {
                     Status = false,
-                    Message = $"Thanh toán thất bại, mã lỗi: {vnp_ResponseCode}"
+                    Message = $"Payment failed, mã lỗi: {vnp_ResponseCode}"
                 };
             }
         }
@@ -109,6 +102,4 @@ namespace Services.VnPay
         public string ResponseCode { get; set; }
         public string Message { get; set; }
     }
-
-
 }
