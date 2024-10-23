@@ -9,6 +9,8 @@ public partial class OrderDetail
 
     public int? OrderId { get; set; }
 
+    public string? TicketCode { get; set; }
+
     public string? Name { get; set; }
 
     public DateTime? DoB { get; set; }

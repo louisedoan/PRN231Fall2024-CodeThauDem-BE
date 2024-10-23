@@ -73,6 +73,7 @@ CREATE TABLE [Order] (
 CREATE TABLE OrderDetail (
     OrderDetailID INT IDENTITY(1,1) PRIMARY KEY,
     OrderID INT,
+    TicketCode VARCHAR(100),
     Name VARCHAR(100),
     DoB DateTime,
     Nationality VARCHAR(100),
