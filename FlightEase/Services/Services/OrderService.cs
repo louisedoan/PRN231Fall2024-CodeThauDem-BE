@@ -195,7 +195,7 @@ namespace FlightEaseDB.BusinessLogic.Services
                 .Get()
                 .Where(o => o.UserId == id)
                 .Include(o => o.OrderDetails)
-                    .ThenInclude(od => od.Flight)  // Include Flight để nạp dữ liệu Flight
+                    .ThenInclude(od => od.Flight)
                 .ToList();
 
             if (orderReturn == null || orderReturn.Count == 0)
@@ -205,12 +205,47 @@ namespace FlightEaseDB.BusinessLogic.Services
 
             foreach (var order in orderReturn)
             {
-                var orderDTO = MapOrderToDTO(order);
+                var firstOrderDetail = order.OrderDetails?.FirstOrDefault();
+                if (firstOrderDetail == null || firstOrderDetail.Flight == null)
+                {
+                    continue;
+                }
+
+                var departureRoute = _flightRouteRepository.Get()
+                    .FirstOrDefault(fr => fr.FlightRouteId == firstOrderDetail.Flight.DepartureLocation);
+                var arrivalRoute = _flightRouteRepository.Get()
+                    .FirstOrDefault(fr => fr.FlightRouteId == firstOrderDetail.Flight.ArrivalLocation);
+
+                var orderDTO = new OrderDTO
+                {
+                    OrderId = order.OrderId,
+                    UserId = order.UserId,
+                    OrderDate = order.OrderDate,
+                    Status = order.Status,
+                    TotalPrice = order.TotalPrice,
+                    DepartureLocation = departureRoute?.Location ?? "Unknown",
+                    ArrivalLocation = arrivalRoute?.Location ?? "Unknown",
+                    OrderDetails = order.OrderDetails.Select(od => new OrderDetailDTO
+                    {
+                        OrderDetailId = od.OrderDetailId,
+                        Name = od.Name,
+                        DoB = od.DoB,
+                        Nationality = od.Nationality,
+                        Email = od.Email,
+                        FlightId = od.FlightId,
+                        TripType = od.TripType,
+                        SeatId = od.SeatId,
+                        Status = od.Status,
+                        TotalAmount = od.TotalAmount
+                    }).ToList()
+                };
+
                 ordersList.Add(orderDTO);
             }
 
             return ordersList;
         }
+
 
 
         // Phương thức ánh xạ đơn hàng và lấy thông tin từ FlightRoute
