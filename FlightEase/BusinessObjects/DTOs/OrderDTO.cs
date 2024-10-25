@@ -12,6 +12,9 @@ namespace BusinessObjects.DTOs
         public string? DepartureLocation { get; set; } // Lấy từ Flight
         public string? ArrivalLocation { get; set; }   // Lấy từ Flight
         public List<OrderDetailDTO> OrderDetails { get; set; }
+        public DateTime? DepartureTime { get; set; }
+        public DateTime? ArrivalTime { get; set; }
+
     }
 
     public class OrderCreateDTO

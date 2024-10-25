@@ -225,6 +225,8 @@ namespace FlightEaseDB.BusinessLogic.Services
                     TotalPrice = order.TotalPrice,
                     DepartureLocation = departureRoute?.Location ?? "Unknown",
                     ArrivalLocation = arrivalRoute?.Location ?? "Unknown",
+                    DepartureTime = firstOrderDetail.Flight.DepartureTime,
+                    ArrivalTime = firstOrderDetail.Flight.ArrivalTime,
                     OrderDetails = order.OrderDetails.Select(od => new OrderDetailDTO
                     {
                         OrderDetailId = od.OrderDetailId,
