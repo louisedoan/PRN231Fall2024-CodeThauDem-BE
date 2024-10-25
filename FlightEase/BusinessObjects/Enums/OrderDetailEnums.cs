@@ -5,6 +5,7 @@
         Pending,
         Success,
         Fail,
-        Refund
+        Refund,
+        Cancelled
     }
 }
