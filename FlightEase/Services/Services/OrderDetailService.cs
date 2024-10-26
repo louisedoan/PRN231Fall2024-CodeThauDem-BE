@@ -55,7 +55,6 @@ namespace FlightEaseDB.BusinessLogic.Services
 
         public ResultModel CancelTicket(int orderDetailId)
         {
-
             var originalOrderDetail = _orderdetailRepository.Get(orderDetailId);
             if (originalOrderDetail == null)
             {
@@ -68,16 +67,17 @@ namespace FlightEaseDB.BusinessLogic.Services
             }
 
             var flight = _flightRepository.Get(originalOrderDetail.FlightId);
-            if (flight == null || !flight.DepartureTime.HasValue)
+            if (flight == null)
             {
                 return new ResultModel
                 {
                     IsSuccess = false,
-                    Message = "Không tìm thấy chuyến bay hoặc giờ khởi hành không hợp lệ",
+                    Message = "Không tìm thấy chuyến bay liên quan đến vé",
                     StatusCode = 404
                 };
             }
 
+          
             var currentTime = DateTime.Now;
             var totalHours = (flight.DepartureTime.Value - currentTime).TotalHours;
             if (totalHours < 72)
@@ -90,6 +90,7 @@ namespace FlightEaseDB.BusinessLogic.Services
                 };
             }
 
+     
             if (originalOrderDetail.Status != OrderDetailEnums.Pending.ToString() &&
                 originalOrderDetail.Status != OrderDetailEnums.Success.ToString())
             {
@@ -101,15 +102,19 @@ namespace FlightEaseDB.BusinessLogic.Services
                 };
             }
 
-            originalOrderDetail.Status = OrderDetailEnums.Cancelled.ToString();
+          
+            originalOrderDetail.Status = OrderDetailEnums.Refund.ToString();
             _orderdetailRepository.Update(originalOrderDetail);
 
+ 
             var seat = _seatRepository.Get(originalOrderDetail.SeatId);
-            if (seat != null)
+            if (seat != null && seat.PlaneId == flight.PlaneId)
             {
+            
                 seat.Status = SeatEnums.Available.ToString();
                 _seatRepository.Update(seat);
             }
+
 
             var refundResult = ProcessRefund(originalOrderDetail.TotalAmount);
             if (!refundResult.IsSuccess)
@@ -121,6 +126,7 @@ namespace FlightEaseDB.BusinessLogic.Services
                     StatusCode = 500
                 };
             }
+
 
             _orderdetailRepository.Save();
             _seatRepository.Save();
