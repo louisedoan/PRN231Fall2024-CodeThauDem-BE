@@ -25,6 +25,8 @@ public partial class FlightEaseDbContext : DbContext
 
     public virtual DbSet<OrderDetail> OrderDetails { get; set; }
 
+    public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+
     public virtual DbSet<Payment> Payments { get; set; }
 
     public virtual DbSet<Plane> Planes { get; set; }
@@ -48,11 +50,12 @@ public partial class FlightEaseDbContext : DbContext
         optionsBuilder.UseSqlServer(GetConnectionString());
     }
 
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Flight>(entity =>
         {
-            entity.HasKey(e => e.FlightId).HasName("PK__Flight__8A9E148E2E3ED046");
+            entity.HasKey(e => e.FlightId).HasName("PK__Flight__8A9E148ED74BC7B7");
 
             entity.ToTable("Flight");
 
@@ -75,7 +78,7 @@ public partial class FlightEaseDbContext : DbContext
 
         modelBuilder.Entity<FlightRoute>(entity =>
         {
-            entity.HasKey(e => e.FlightRouteId).HasName("PK__FlightRo__812C3CDC61B6FEE0");
+            entity.HasKey(e => e.FlightRouteId).HasName("PK__FlightRo__812C3CDC2F184AD2");
 
             entity.ToTable("FlightRoute");
 
@@ -87,7 +90,7 @@ public partial class FlightEaseDbContext : DbContext
 
         modelBuilder.Entity<Membership>(entity =>
         {
-            entity.HasKey(e => e.MembershipId).HasName("PK__Membersh__92A785991F3B3000");
+            entity.HasKey(e => e.MembershipId).HasName("PK__Membersh__92A785994DB39D6F");
 
             entity.ToTable("Membership");
 
@@ -99,7 +102,7 @@ public partial class FlightEaseDbContext : DbContext
 
         modelBuilder.Entity<Order>(entity =>
         {
-            entity.HasKey(e => e.OrderId).HasName("PK__Order__C3905BAFEA29E50E");
+            entity.HasKey(e => e.OrderId).HasName("PK__Order__C3905BAF26185FD5");
 
             entity.ToTable("Order");
 
@@ -117,7 +120,7 @@ public partial class FlightEaseDbContext : DbContext
 
         modelBuilder.Entity<OrderDetail>(entity =>
         {
-            entity.HasKey(e => e.OrderDetailId).HasName("PK__OrderDet__D3B9D30C65BFE0F9");
+            entity.HasKey(e => e.OrderDetailId).HasName("PK__OrderDet__D3B9D30C5DEE2C39");
 
             entity.ToTable("OrderDetail");
 
@@ -158,9 +161,25 @@ public partial class FlightEaseDbContext : DbContext
                 .HasConstraintName("FK__OrderDeta__SeatI__4AB81AF0");
         });
 
+        modelBuilder.Entity<PasswordResetToken>(entity =>
+        {
+            entity.HasKey(e => e.TokenId).HasName("PK__Password__658FEEEA00CF10BB");
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.ExpirationDate).HasColumnType("datetime");
+            entity.Property(e => e.Token).HasMaxLength(256);
+
+            entity.HasOne(d => d.User).WithMany(p => p.PasswordResetTokens)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__PasswordR__UserI__5629CD9C");
+        });
+
         modelBuilder.Entity<Payment>(entity =>
         {
-            entity.HasKey(e => e.PaymentId).HasName("PK__Payment__9B556A58206ABBBE");
+            entity.HasKey(e => e.PaymentId).HasName("PK__Payment__9B556A5855F47CAD");
 
             entity.ToTable("Payment");
 
@@ -181,7 +200,7 @@ public partial class FlightEaseDbContext : DbContext
 
         modelBuilder.Entity<Plane>(entity =>
         {
-            entity.HasKey(e => e.PlaneId).HasName("PK__Plane__843E549C638EB6BA");
+            entity.HasKey(e => e.PlaneId).HasName("PK__Plane__843E549CB1A765B7");
 
             entity.ToTable("Plane");
 
@@ -196,7 +215,7 @@ public partial class FlightEaseDbContext : DbContext
 
         modelBuilder.Entity<RefreshToken>(entity =>
         {
-            entity.HasKey(e => e.TokenId).HasName("PK__RefreshT__658FEE8A28EA326F");
+            entity.HasKey(e => e.TokenId).HasName("PK__RefreshT__658FEE8A8A82DBEE");
 
             entity.ToTable("RefreshToken");
 
@@ -213,7 +232,7 @@ public partial class FlightEaseDbContext : DbContext
 
         modelBuilder.Entity<Seat>(entity =>
         {
-            entity.HasKey(e => e.SeatId).HasName("PK__Seat__311713D396D53A36");
+            entity.HasKey(e => e.SeatId).HasName("PK__Seat__311713D3D7EE27BF");
 
             entity.ToTable("Seat");
 
@@ -233,7 +252,7 @@ public partial class FlightEaseDbContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__User__1788CCACD8D9D968");
+            entity.HasKey(e => e.UserId).HasName("PK__User__1788CCAC84DED638");
 
             entity.ToTable("User");
 
