@@ -106,3 +106,13 @@ CREATE TABLE RefreshToken (
     UpdateDate DATETIME,
     FOREIGN KEY (UserID) REFERENCES [User](UserID)
 );
+
+CREATE TABLE PasswordResetTokens (
+    TokenId INT IDENTITY(1,1) PRIMARY KEY, 
+    Token NVARCHAR(256), 
+    UserId INT NOT NULL,                       
+    CreatedDate DATETIME NOT NULL DEFAULT GETDATE(),              
+    ExpirationDate DATETIME NOT NULL, 
+    IsUsed BIT NOT NULL DEFAULT 0,              
+    FOREIGN KEY (UserId) REFERENCES [User](UserID)
+);
