@@ -12,12 +12,16 @@ namespace Repositories.Repositories
     }
     public partial class UserRepository : BaseRepository<User>, IUserRepository
     {
-      
+     
         public UserRepository(DbContext dbContext) : base(dbContext)
         {
+
             
         }
+
     }
+
+
 }
 
 

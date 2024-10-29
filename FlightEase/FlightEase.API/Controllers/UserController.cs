@@ -177,7 +177,75 @@ namespace FlightEaseDB.Presentation.Controllers
                 return Unauthorized();
             }
         }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                return BadRequest("Email address is required.");
+            }
+
+            try
+            {
+                var result = await _userService.ForgotPasswordAsync(email);
+
+                if (result.IsSuccess)
+                {
+                    return Ok(new { 
+                        statusCode = result.StatusCode,
+                        isSuccess = result.IsSuccess,
+                        data = result.Data,
+                        message = result.Message });
+                }
+
+                return StatusCode(result.StatusCode, new { message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"An unexpected error occurred: {ex.Message}" });
+            }
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(string token, string newPassword)
+        {
+            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(newPassword))
+            {
+                return BadRequest(new { isSuccess = false, statusCode = 400, message = "Token and new password are required." });
+            }
+
+            try
+            {
+                var isResetSuccessful = await _userService.ResetPasswordAsync(token, newPassword);
+
+                if (isResetSuccessful.IsSuccess)
+                {
+                    return Ok(new {
+                        isSuccess = isResetSuccessful.IsSuccess,
+                        statusCode = isResetSuccessful.StatusCode,
+                        data = isResetSuccessful.Data,
+                        message = isResetSuccessful.Message });
+                }
+                return StatusCode(isResetSuccessful.StatusCode, new
+                {
+                    isSuccess = isResetSuccessful.IsSuccess,
+                    statusCode = isResetSuccessful.StatusCode,
+                    message = isResetSuccessful.Message
+                });
+            }
+
+            catch (Exception ex)
+          {
+        return StatusCode(500, new
+        {
+            isSuccess = false,
+            statusCode = 500,
+            message = $"An unexpected error occurred: {ex.Message}"
+        });
+       }
     }
+   }
 }
 
 
