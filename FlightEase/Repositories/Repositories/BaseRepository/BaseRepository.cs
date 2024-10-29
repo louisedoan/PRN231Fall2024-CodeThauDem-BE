@@ -155,5 +155,11 @@ namespace Repositories.Repositories.BaseRepository
         {
             return _dbSet.Update(entity).Entity;
         }
+
+        public int GetMaxId(Expression<Func<TEntity, int>> predicate)
+        {
+            return _dbSet.Max(predicate);
+        }
+
     }
 }

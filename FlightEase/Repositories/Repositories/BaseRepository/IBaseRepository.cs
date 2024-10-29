@@ -16,6 +16,8 @@ namespace Repositories.Repositories.BaseRepository
 
         int Count();
 
+        int GetMaxId(Expression<Func<TEntity, int>> predicate);
+
         TEntity Get<TKey>(TKey id);
 
         Task<TEntity> GetAsync<TKey>(TKey id);
@@ -53,5 +55,6 @@ namespace Repositories.Repositories.BaseRepository
         Task SaveAsync();
 
         void Dispose();
+
     }
 }

@@ -1,6 +1,7 @@
 using FlightEaseDB.BusinessLogic.Services;
 using FlightEaseDB.Services.Services;
 using Repositories.Repositories;
+using Services.EmailService;
 using Services.Services;
 using Services.VnPay;
 
@@ -37,6 +38,10 @@ namespace FlightEaseDB.BusinessLogic.Generations.DependencyInjection
 
             services.AddScoped<ISeatRepository, SeatRepository>();
             services.AddScoped<ISeatService, SeatService>();
+
+            services.AddScoped<IPasswordRepository, PasswordRepository>();
+
+            services.AddScoped<IEmailService , EmailService>();
 
             services.AddScoped<IVnPayService, VnPayService>();
         }
