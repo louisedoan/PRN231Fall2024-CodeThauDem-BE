@@ -10,7 +10,6 @@ namespace FlightEaseDB.BusinessLogic.Services
     public interface IPaymentService
     {
         public PaymentDTO CreatePayment(PaymentDTO paymentCreate, HttpContext context);  // Thêm HttpContext
-        public PaymentDTO UpdatePayment(PaymentDTO paymentUpdate);
         public bool DeletePayment(int idTmp);
         public List<PaymentDTO> GetAll();
         public PaymentDTO GetById(int idTmp);
@@ -22,12 +21,14 @@ namespace FlightEaseDB.BusinessLogic.Services
         private readonly IPaymentRepository _paymentRepository;
         private readonly IOrderRepository _orderRepository;
         private readonly IVnPayService _vnPayService;
+        private readonly IOrderDetailRepository _orderDetailRepository;
 
-        public PaymentService(IPaymentRepository paymentRepository, IOrderRepository orderRepository, IVnPayService vnPayService)
+        public PaymentService(IPaymentRepository paymentRepository, IOrderRepository orderRepository, IVnPayService vnPayService, IOrderDetailRepository orderDetailRepository)
         {
             _paymentRepository = paymentRepository;
             _orderRepository = orderRepository;
             _vnPayService = vnPayService;
+            _orderDetailRepository = orderDetailRepository;
         }
 
         // Tạo Payment mới từ thông tin Order
@@ -56,7 +57,8 @@ namespace FlightEaseDB.BusinessLogic.Services
             var vnPayRequestModel = new VnPaymentRequestModel
             {
                 Amount = (decimal)payment.Amount,  // Không cần ép kiểu
-                ServiceId = payment.OrderId.Value
+                ServiceId = payment.OrderId.Value,
+                OrderId = payment.OrderId.Value
             };
 
             var paymentUrl = _vnPayService.CreatePaymentUrl(context, vnPayRequestModel);
@@ -81,21 +83,7 @@ namespace FlightEaseDB.BusinessLogic.Services
 
 
         // Cập nhật thông tin Payment
-        public PaymentDTO UpdatePayment(PaymentDTO paymentUpdate)
-        {
-            var payment = _paymentRepository.Get(paymentUpdate.PaymentId);
-            if (payment == null) throw new Exception("Payment not found");
 
-            // Cập nhật thông tin Payment
-            payment.Status = paymentUpdate.Status;
-            payment.Amount = paymentUpdate.Amount;
-            payment.PaymentDate = paymentUpdate.PaymentDate;
-
-            _paymentRepository.Update(payment);
-            _paymentRepository.Save();
-
-            return paymentUpdate;
-        }
 
         // Xóa Payment theo ID
         public bool DeletePayment(int idTmp)

@@ -72,20 +72,20 @@ namespace FlightEaseDB.Presentation.Controllers
         }
 
         // Cập nhật thanh toán
-        [MapToApiVersion("1")]
-        [HttpPut]
-        public ActionResult<PaymentDTO> UpdatePayment([FromBody] PaymentDTO paymentUpdate)
-        {
-            try
-            {
-                var paymentUpdated = _paymentService.UpdatePayment(paymentUpdate);
-                return Ok(paymentUpdated);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
+        //[MapToApiVersion("1")]
+        //[HttpPut]
+        //public ActionResult<PaymentDTO> UpdatePayment([FromBody] PaymentDTO paymentUpdate)
+        //{
+        //    try
+        //    {
+        //        var paymentUpdated = _paymentService.UpdatePayment(paymentUpdate);
+        //        return Ok(paymentUpdated);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(ex.Message);
+        //    }
+        //}
 
         [HttpGet("vnpay_return")]
         public IActionResult VnPayReturn()
