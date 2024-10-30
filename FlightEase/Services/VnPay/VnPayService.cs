@@ -1,6 +1,9 @@
 ﻿using BusinessObjects.DTOs;
+using BusinessObjects.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Repositories.Repositories;
+using System.Text.RegularExpressions;
 
 namespace Services.VnPay
 {
@@ -13,10 +16,16 @@ namespace Services.VnPay
     public class VnPayService : IVnPayService
     {
         private readonly IConfiguration _configuration;
+        private readonly IPaymentRepository _paymentRepository;
+        private readonly IOrderRepository _orderRepository;
+        private readonly IOrderDetailRepository _orderDetailRepository;
 
-        public VnPayService(IConfiguration configuration)
+        public VnPayService(IConfiguration configuration, IPaymentRepository paymentRepository, IOrderDetailRepository orderDetailRepository, IOrderRepository orderRepository)
         {
             _configuration = configuration;
+            _paymentRepository = paymentRepository;
+            _orderRepository = orderRepository;
+            _orderDetailRepository = orderDetailRepository;
         }
 
         public string CreatePaymentUrl(HttpContext context, VnPaymentRequestModel model)
@@ -73,6 +82,9 @@ namespace Services.VnPay
 
             if (vnp_ResponseCode == "00")
             {
+                var orderId = ExtractOrderId(vnp_OrderInfo);
+
+                UpdatePayment(orderId);
                 return new VnPaymentResponseModel
                 {
                     Status = true,
@@ -91,7 +103,50 @@ namespace Services.VnPay
                 };
             }
         }
+        private int ExtractOrderId(string description)
+        {
+            var match = Regex.Match(description, @"Order ID:(\d+)");
+            if (match.Success && int.TryParse(match.Groups[1].Value, out int orderId))
+            {
+                return orderId;
+            }
+            throw new Exception("Invalid order ID in description");
+        }
+        public async Task<bool> UpdatePayment(int orderId)
+        {
+            try
+            {
+                var payment = _paymentRepository.FirstOrDefault(o => o.OrderId == orderId);
+                if (payment == null) return false;
 
+                // Cập nhật thông tin Payment
+                payment.Status = OrderEnums.Success.ToString();
+                payment.PaymentDate = DateTime.Now;
+                payment.PaymentMethod = "VNPay";
+
+                var order = _orderRepository.Get().FirstOrDefault(o => o.OrderId == orderId);
+                if (order == null) return false;
+                order.Status = OrderEnums.Success.ToString();
+
+                var orderDetails = _orderDetailRepository.Get().Where(o => o.OrderId == orderId).ToList();
+                foreach (var orderDetail in orderDetails)
+                {
+                    orderDetail.Status = OrderEnums.Success.ToString();
+                    _orderDetailRepository.Update(orderDetail);
+                    _orderDetailRepository.Save();
+                }
+                _paymentRepository.Update(payment);
+                _paymentRepository.Save();
+                _orderRepository.Update(order);
+                _orderRepository.Save();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 
     public class VnPaymentResponseModel

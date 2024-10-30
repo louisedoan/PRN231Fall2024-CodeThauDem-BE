@@ -27,8 +27,8 @@ namespace FlightEaseDB.BusinessLogic.Generations.DependencyInjection
             services.AddScoped<IOrderDetailService, OrderDetailService>();
             services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
 
-            services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<IPaymentRepository, PaymentRepository>();
+            services.AddScoped<IPaymentService, PaymentService>();
 
             services.AddScoped<IPlaneService, PlaneService>();
             services.AddScoped<IPlaneRepository, PlaneRepository>();
@@ -41,7 +41,7 @@ namespace FlightEaseDB.BusinessLogic.Generations.DependencyInjection
 
             services.AddScoped<IPasswordRepository, PasswordRepository>();
 
-            services.AddScoped<IEmailService , EmailService>();
+            services.AddScoped<IEmailService, EmailService>();
 
             services.AddScoped<IVnPayService, VnPayService>();
         }
