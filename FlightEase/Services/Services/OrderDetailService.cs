@@ -1,5 +1,6 @@
 ﻿using BusinessObjects.DTOs;
 using BusinessObjects.Enums;
+using Microsoft.EntityFrameworkCore;
 using Repositories.Repositories;
 
 namespace FlightEaseDB.BusinessLogic.Services
@@ -12,6 +13,8 @@ namespace FlightEaseDB.BusinessLogic.Services
         public List<OrderDetailDTO> GetAll();
         public OrderDetailDTO GetById(int idTmp);
         ResultModel CancelTicket(int orderDetailId);
+
+        public Task<double?> GetTotalSpendingAsync(int userId);
     }
 
     public class OrderDetailService : IOrderDetailService {
@@ -159,6 +162,13 @@ namespace FlightEaseDB.BusinessLogic.Services
                     StatusCode = 400
                 };
             }
+        }
+
+        public async Task<double?> GetTotalSpendingAsync(int userId)
+        {
+            return await _orderdetailRepository.Get()
+                .Where(od => od.Order.UserId == userId && od.Status == "success")
+                .SumAsync(od => od.TotalAmount);
         }
 
 
