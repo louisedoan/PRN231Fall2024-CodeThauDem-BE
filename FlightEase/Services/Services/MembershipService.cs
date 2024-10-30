@@ -18,11 +18,13 @@ namespace FlightEaseDB.BusinessLogic.Services
 	public class MembershipService : IMembershipService
 	{
 		private readonly IMembershipRepository _membershipRepository;
+        private readonly IOrderDetailService _orderDetailService;
 
-		public MembershipService(IMembershipRepository membershipRepository)
+        public MembershipService(IMembershipRepository membershipRepository, IOrderDetailService orderDetailService)
 		{
 			_membershipRepository = membershipRepository;
-		}
+            _orderDetailService = orderDetailService;
+        }
 
 		public MemBershipDTO CreateMembership(MemBershipDTO membershipCreate)
 		{
@@ -91,7 +93,35 @@ namespace FlightEaseDB.BusinessLogic.Services
 				Discount = membershipEntity.Discount
 			};
 		}
-	}
+        public async Task UpdateMembershipStatus(int userId)
+        {
+            // Tính tổng chi tiêu
+            var totalSpent = await _orderDetailService .GetTotalSpendingAsync(userId);
+
+            var membership =  _membershipRepository.Get(userId);
+            if (membership == null) return;
+
+            // Cập nhật trạng thái membership dựa trên tổng tiền đã chi tiêu
+            if (totalSpent >= 1000) // Ví dụ: Tổng tiền >= 1000
+            {
+                membership.Rank = "Gold";
+                membership.Discount = 15; // Giảm giá 15%
+            }
+            else if (totalSpent >= 500) // Tổng tiền >= 500
+            {
+                membership.Rank = "Silver";
+                membership.Discount = 10; // Giảm giá 10%
+            }
+            else
+            {
+                membership.Rank = "Bronze";
+                membership.Discount = 5; // Giảm giá 5%
+            }
+
+            _membershipRepository.Update(membership);
+            await _membershipRepository.SaveAsync(); // Lưu thay đổi
+        }
+    }
 
 
 }
