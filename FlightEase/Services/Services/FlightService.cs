@@ -50,7 +50,7 @@ public class FlightService : IFlightService
             DepartureTime = flightCreate.DepartureTime,
             ArrivalLocation = flightCreate.ArrivalLocation,
             ArrivalTime = flightCreate.ArrivalTime,
-            FlightStatus = flightCreate.FlightStatus,
+            FlightStatus = "Avaiable"
         };
 
         
