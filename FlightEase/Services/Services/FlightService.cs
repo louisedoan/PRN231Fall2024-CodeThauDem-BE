@@ -1,6 +1,7 @@
 ﻿using BusinessObjects.DTOs;
 using BusinessObjects.Entities;
 using BusinessObjects.Enums;
+using Microsoft.EntityFrameworkCore;
 using Repositories.Repositories;
 
 public interface IFlightService
@@ -50,7 +51,7 @@ public class FlightService : IFlightService
             DepartureTime = flightCreate.DepartureTime,
             ArrivalLocation = flightCreate.ArrivalLocation,
             ArrivalTime = flightCreate.ArrivalTime,
-            FlightStatus = "Avaiable"
+            FlightStatus = "Available"
         };
 
         
@@ -94,24 +95,58 @@ public class FlightService : IFlightService
 
     public List<FlightDTO> GetAll()
     {
-        var flight = _flightRepository.Get().ToList();
-        var flightDTO = flight.Select(x => new FlightDTO
+        // Fetch the flight data, including related FlightRoute entities for Departure and Arrival
+        var flights = _flightRepository.Get()
+            .Include(f => f.DepartureLocationNavigation) // Include DepartureLocation
+            .Include(f => f.ArrivalLocationNavigation) // Include ArrivalLocation
+            .ToList();
+
+      
+        var flightDTOs = flights.Select(x => new FlightDTO
         {
             FlightId = x.FlightId,
-          //  PilotId = x.PilotId,
-          PlaneId = x.PlaneId,
+            PlaneId = x.PlaneId,
             FlightNumber = x.FlightNumber,
+            DepartureLocation = x.DepartureLocation,
+            DepartureLocationName = x.DepartureLocationNavigation?.Location, 
             DepartureTime = x.DepartureTime,
+            ArrivalLocation = x.ArrivalLocation,
+            ArrivalLocationName = x.ArrivalLocationNavigation?.Location, 
             ArrivalTime = x.ArrivalTime,
             FlightStatus = x.FlightStatus,
-        //    EmptySeat = x.EmptySeat,
+            
         }).ToList();
-        return flightDTO;
+
+        return flightDTOs;
     }
+
+
 
     public FlightDTO GetById(int idTmp)
     {
-        throw new NotImplementedException();
+        var flight = _flightRepository.Get().FirstOrDefault(f => f.FlightId == idTmp);
+
+        // Check if the flight entity was found
+        if (flight == null)
+        {
+            return null; // Or handle it as appropriate, like throwing an exception or returning a custom error DTO
+        }
+
+        // Map the flight entity to a FlightDTO
+        var flightDTO = new FlightDTO
+        {
+            FlightId = flight.FlightId,
+            PlaneId = flight.PlaneId,
+            FlightNumber = flight.FlightNumber,
+            DepartureLocation = flight.DepartureLocation,
+            DepartureTime = flight.DepartureTime,
+            ArrivalLocation = flight.ArrivalLocation,
+            ArrivalTime = flight.ArrivalTime,
+            FlightStatus = flight.FlightStatus
+        };
+
+        // Return the mapped FlightDTO
+        return flightDTO;
     }
     public List<FlightDTO> SearchFlight()
     {
