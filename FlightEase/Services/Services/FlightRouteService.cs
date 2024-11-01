@@ -208,6 +208,7 @@ namespace FlightEaseDB.Services.Services
 
                 var flightRouteDTO = new FlightRouteDTO
                 {
+                    FlightRouteId = flightRoute.FlightRouteId,
                     Location = flightRoute.Location
                 };
 
