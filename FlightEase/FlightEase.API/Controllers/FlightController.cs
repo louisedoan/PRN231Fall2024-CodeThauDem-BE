@@ -26,11 +26,22 @@ namespace FlightEase.Presentation.Controllers
             {
                 return BadRequest("Invalid flight data");
             }
-            var flightCreated = _flightService.CreateFlight(flightCreate);
 
+            // Check if the FlightNumber already exists
+            var existingFlight = _flightService.GetAll()
+                .FirstOrDefault(f => f.FlightNumber == flightCreate.FlightNumber);
+
+            if (existingFlight != null)
+            {
+                return BadRequest("Flight number already exists. Please use a unique flight number.");
+            }
+
+            // Create the flight
+            var flightCreated = _flightService.CreateFlight(flightCreate);
 
             return flightCreated;
         }
+
 
         [MapToApiVersion("1")]
         [HttpGet]
