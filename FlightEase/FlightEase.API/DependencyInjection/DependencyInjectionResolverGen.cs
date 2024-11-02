@@ -3,6 +3,7 @@ using FlightEaseDB.Services.Services;
 using Repositories.Repositories;
 using Services.EmailService;
 using Services.Services;
+using Services.Services.BackgroundWorker;
 using Services.VnPay;
 
 namespace FlightEaseDB.BusinessLogic.Generations.DependencyInjection
@@ -44,6 +45,9 @@ namespace FlightEaseDB.BusinessLogic.Generations.DependencyInjection
             services.AddScoped<IEmailService, EmailService>();
 
             services.AddScoped<IVnPayService, VnPayService>();
+
+            services.AddHostedService<FlightBackgroundService>();
+
         }
     }
 }
