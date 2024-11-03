@@ -9,11 +9,11 @@ namespace FlightEaseDB.Presentation.Controllers
     [ApiController]
     [ApiVersion("1")]
     [Route("/api/v1/planes")]
-    public class PlaneController : ControllerBase {
+    public class PlaneController : ControllerBase
+    {
+        private readonly IPlaneService _planeService;
 
-        private IPlaneService _planeService;
-
-         public PlaneController(IPlaneService planeService)
+        public PlaneController(IPlaneService planeService)
         {
             _planeService = planeService;
         }
@@ -26,9 +26,9 @@ namespace FlightEaseDB.Presentation.Controllers
 
             if (planeCreated == null)
             {
-                return NotFound("");
+                return BadRequest("Failed to create plane.");
             }
-            return planeCreated;
+            return CreatedAtAction(nameof(GetById), new { idTmp = planeCreated.PlaneId }, planeCreated);
         }
 
         [MapToApiVersion("1")]
@@ -36,65 +36,70 @@ namespace FlightEaseDB.Presentation.Controllers
         public ActionResult<List<PlaneDTO>> GetAll()
         {
             var planeList = _planeService.GetAll();
-
-            if (planeList == null)
+            if (planeList == null || !planeList.Any())
             {
-                return NotFound("");
+                return NotFound("No planes found.");
             }
-            return planeList;
+            return Ok(planeList);
         }
 
         [MapToApiVersion("1")]
-        [HttpGet("idTmp")]
+        [HttpGet("{idTmp}")]
         public ActionResult<PlaneDTO> GetById(int idTmp)
         {
             var planeDetail = _planeService.GetById(idTmp);
-
             if (planeDetail == null)
             {
-                return NotFound("");
+                return NotFound($"Plane with ID {idTmp} not found.");
             }
-            return planeDetail;
+            return Ok(planeDetail);
         }
 
         [MapToApiVersion("1")]
-        [HttpDelete]
+        [HttpDelete("{idTmp}")]
         public ActionResult<bool> DeletePlane(int idTmp)
         {
             var check = _planeService.DeletePlane(idTmp);
-
-            if (check == false)
+            if (!check)
             {
-                return NotFound("");
+                return NotFound($"Plane with ID {idTmp} not found or couldn't be deleted.");
             }
-            return check;
+            return Ok("Plane deleted successfully.");
         }
 
         [MapToApiVersion("1")]
-        [HttpPut]
-        public ActionResult<PlaneDTO> UpdatePlane(PlaneDTO planeCreate)
+        [HttpPut("{idTmp}")]
+        public ActionResult<PlaneDTO> UpdatePlane(int idTmp, PlaneDTO planeUpdate)
         {
-            var planeUpdated = _planeService.UpdatePlane(planeCreate);
+            if (idTmp != planeUpdate.PlaneId)
+            {
+                return BadRequest("Plane ID mismatch.");
+            }
 
+            var planeUpdated = _planeService.UpdatePlane(planeUpdate);
             if (planeUpdated == null)
             {
-                return NotFound("");
+                return NotFound($"Plane with ID {idTmp} not found.");
             }
-            return planeUpdated;
+            return Ok(planeUpdated);
         }
 
         [MapToApiVersion("1")]
-
-        [HttpGet("sreachPlane")]
-        public ActionResult<List<PlaneDTO>> SreachPlane(ODataQueryOptions<PlaneDTO> queryOptions, [FromQuery] string status = null)
+        [HttpGet("search")]
+        public ActionResult<List<PlaneDTO>> SearchPlanes([FromQuery] string status = null)
         {
             var planeDTOs = _planeService.GetSuitablePlane();
 
             if (!string.IsNullOrEmpty(status))
             {
-                planeDTOs = planeDTOs.Where(p => p.Status.Contains(status)).ToList();
+                planeDTOs = planeDTOs.Where(p => p.Status.Contains(status, StringComparison.OrdinalIgnoreCase)).ToList();
             }
-            return planeDTOs;
+
+            if (planeDTOs == null || !planeDTOs.Any())
+            {
+                return NotFound("No suitable planes found.");
+            }
+            return Ok(planeDTOs);
         }
     }
 
