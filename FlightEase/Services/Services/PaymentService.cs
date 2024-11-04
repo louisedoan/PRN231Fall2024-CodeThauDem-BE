@@ -22,13 +22,17 @@ namespace FlightEaseDB.BusinessLogic.Services
         private readonly IOrderRepository _orderRepository;
         private readonly IVnPayService _vnPayService;
         private readonly IOrderDetailRepository _orderDetailRepository;
+        private readonly IMembershipService _membershipService;
+        private readonly IUserService _userService;
 
-        public PaymentService(IPaymentRepository paymentRepository, IOrderRepository orderRepository, IVnPayService vnPayService, IOrderDetailRepository orderDetailRepository)
+        public PaymentService(IPaymentRepository paymentRepository, IOrderRepository orderRepository, IVnPayService vnPayService, IOrderDetailRepository orderDetailRepository, IMembershipService membershipService, IUserService userService)
         {
             _paymentRepository = paymentRepository;
             _orderRepository = orderRepository;
             _vnPayService = vnPayService;
             _orderDetailRepository = orderDetailRepository;
+            _membershipService = membershipService;
+            _userService = userService;
         }
 
         // Tạo Payment mới từ thông tin Order
@@ -134,7 +138,6 @@ namespace FlightEaseDB.BusinessLogic.Services
 
             if (!int.TryParse(txnRefString, out int vnPayTransactionId))
             {
-                // Xử lý khi txnRefString không phải số hợp lệ
                 return false;
             }
 
@@ -146,10 +149,17 @@ namespace FlightEaseDB.BusinessLogic.Services
             _paymentRepository.Update(payment);
             _paymentRepository.Save();
 
+            if (payment.Status == "Success")
+            {
+                // Cập nhật Rank cho User khi thanh toán thành công
+                var order = _orderRepository.Get(payment.OrderId.Value);
+                if (order != null)
+                {
+                    _userService.UpdateUserRank(order.UserId.Value).Wait(); // Gọi hàm UpdateUserRank để cập nhật Rank
+                }
+            }
+
             return payment.Status == "Success";
         }
-
-
     }
-
 }
