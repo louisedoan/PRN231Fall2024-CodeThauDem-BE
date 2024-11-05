@@ -1,10 +1,11 @@
 using BusinessObjects.DTOs;
 using Repositories.Repositories;
-
+using BusinessObjects.Entities;
 namespace FlightEaseDB.BusinessLogic.Services
 {
 
-    public interface IPlaneService {
+    public interface IPlaneService
+    {
         public PlaneDTO CreatePlane(PlaneDTO planeCreate);
         public PlaneDTO UpdatePlane(PlaneDTO planeUpdate);
         public bool DeletePlane(int idTmp);
@@ -14,9 +15,9 @@ namespace FlightEaseDB.BusinessLogic.Services
 
     }
 
-    public class PlaneService : IPlaneService {
-
-      private readonly IPlaneRepository _planeRepository;
+    public class PlaneService : IPlaneService
+    {
+        private readonly IPlaneRepository _planeRepository;
 
         public PlaneService(IPlaneRepository planeRepository)
         {
@@ -25,28 +26,82 @@ namespace FlightEaseDB.BusinessLogic.Services
 
         public PlaneDTO CreatePlane(PlaneDTO planeCreate)
         {
-            throw new NotImplementedException();
+            var plane = new Plane
+            {
+                PlaneCode = planeCreate.PlaneCode,
+                TotalSeats = planeCreate.TotalSeats,
+                Status = planeCreate.Status
+            };
+
+            _planeRepository.Create(plane);
+            _planeRepository.Save();
+
+            return new PlaneDTO
+            {
+                PlaneId = plane.PlaneId,
+                PlaneCode = plane.PlaneCode,
+                TotalSeats = plane.TotalSeats,
+                Status = plane.Status
+            };
         }
 
-        public PlaneDTO UpdatePlane(PlaneDTO planeUpdate) 
+        public PlaneDTO UpdatePlane(PlaneDTO planeUpdate)
         {
-            throw new NotImplementedException();
+            var plane = _planeRepository.Get(planeUpdate.PlaneId);
+            if (plane == null) return null;
+
+            plane.PlaneCode = planeUpdate.PlaneCode;
+            plane.TotalSeats = planeUpdate.TotalSeats;
+            plane.Status = planeUpdate.Status;
+
+            _planeRepository.Update(plane);
+            _planeRepository.Save();
+
+            return new PlaneDTO
+            {
+                PlaneId = plane.PlaneId,
+                PlaneCode = plane.PlaneCode,
+                TotalSeats = plane.TotalSeats,
+                Status = plane.Status
+            };
         }
 
         public bool DeletePlane(int idTmp)
         {
-            throw new NotImplementedException();
+            var plane = _planeRepository.Get(idTmp);
+            if (plane == null) return false;
+
+            _planeRepository.Delete(plane);
+            _planeRepository.Save();
+            return true;
         }
 
-        public List<PlaneDTO> GetAll() 
+        public List<PlaneDTO> GetAll()
         {
-            throw new NotImplementedException();
+            var planes = _planeRepository.Get().ToList();
+            return planes.Select(plane => new PlaneDTO
+            {
+                PlaneId = plane.PlaneId,
+                PlaneCode = plane.PlaneCode,
+                TotalSeats = plane.TotalSeats,
+                Status = plane.Status
+            }).ToList();
         }
 
-        public PlaneDTO GetById(int idTmp) 
+        public PlaneDTO GetById(int idTmp)
         {
-            throw new NotImplementedException();
+            var plane = _planeRepository.Get(idTmp);
+            if (plane == null) return null;
+
+            return new PlaneDTO
+            {
+                PlaneId = plane.PlaneId,
+                PlaneCode = plane.PlaneCode,
+                TotalSeats = plane.TotalSeats,
+                Status = plane.Status
+            };
         }
+
         public List<PlaneDTO> GetSuitablePlane()
         {
             var plane = _planeRepository.Get();
@@ -61,7 +116,5 @@ namespace FlightEaseDB.BusinessLogic.Services
 
             return planeDTO;
         }
-
     }
-
 }
