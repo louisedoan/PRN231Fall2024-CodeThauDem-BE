@@ -32,8 +32,8 @@ namespace Services.Services.BackgroundWorker
             using (var scope = _serviceProvider.CreateScope())
             {
                 var flightRepository = scope.ServiceProvider.GetRequiredService<IFlightRepository>();
+                var seatRepository = scope.ServiceProvider.GetRequiredService<ISeatRepository>();
 
-                // Update flights to InUse if departure time has come
                 var flightsToInUse = await flightRepository.Get()
                     .Where(f => f.DepartureTime <= DateTime.Now && f.FlightStatus == FlightStatus.Available.ToString())
                     .ToListAsync();
@@ -53,6 +53,7 @@ namespace Services.Services.BackgroundWorker
                     flight.FlightStatus = FlightStatus.Done.ToString();
                     flightRepository.Update(flight);
                 }
+
 
                 await flightRepository.SaveAsync();
             }
