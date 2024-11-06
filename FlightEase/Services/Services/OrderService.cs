@@ -245,7 +245,9 @@ namespace FlightEaseDB.BusinessLogic.Services
                         TripType = od.TripType,
                         SeatId = od.SeatId,
                         Status = od.Status,
-                        TotalAmount = od.TotalAmount
+                        TotalAmount = od.TotalAmount,
+                        TicketCode = od.TicketCode
+
                     }).ToList()
                 };
 
