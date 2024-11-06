@@ -221,11 +221,13 @@ namespace FlightEaseDB.Presentation.Controllers
 
                 if (isResetSuccessful.IsSuccess)
                 {
-                    return Ok(new {
+                    return Ok(new
+                    {
                         isSuccess = isResetSuccessful.IsSuccess,
                         statusCode = isResetSuccessful.StatusCode,
                         data = isResetSuccessful.Data,
-                        message = isResetSuccessful.Message });
+                        message = isResetSuccessful.Message
+                    });
                 }
                 return StatusCode(isResetSuccessful.StatusCode, new
                 {
@@ -236,16 +238,56 @@ namespace FlightEaseDB.Presentation.Controllers
             }
 
             catch (Exception ex)
-          {
-        return StatusCode(500, new
+            {
+                return StatusCode(500, new
+                {
+                    isSuccess = false,
+                    statusCode = 500,
+                    message = $"An unexpected error occurred: {ex.Message}"
+                });
+            }
+        }
+        [HttpPost("confirm-user")]
+        public async Task<IActionResult> ConfirmUser(string token)
         {
-            isSuccess = false,
-            statusCode = 500,
-            message = $"An unexpected error occurred: {ex.Message}"
-        });
-       }
+            if (string.IsNullOrEmpty(token))
+            {
+                return BadRequest(new { isSuccess = false, statusCode = 400, message = "Token is required." });
+            }
+
+            try
+            {
+                var isResetSuccessful = await _userService.ConfirmRegister(token);
+
+                if (isResetSuccessful.IsSuccess)
+                {
+                    return Ok(new
+                    {
+                        isSuccess = isResetSuccessful.IsSuccess,
+                        statusCode = isResetSuccessful.StatusCode,
+                        data = isResetSuccessful.Data,
+                        message = isResetSuccessful.Message
+                    });
+                }
+                return StatusCode(isResetSuccessful.StatusCode, new
+                {
+                    isSuccess = isResetSuccessful.IsSuccess,
+                    statusCode = isResetSuccessful.StatusCode,
+                    message = isResetSuccessful.Message
+                });
+            }
+
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    isSuccess = false,
+                    statusCode = 500,
+                    message = $"An unexpected error occurred: {ex.Message}"
+                });
+            }
+        }
     }
-   }
 }
 
 

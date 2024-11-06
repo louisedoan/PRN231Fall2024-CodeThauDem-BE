@@ -5,8 +5,8 @@ using Repositories.Repositories;
 
 namespace FlightEaseDB.BusinessLogic.Services
 {
-
-    public interface IOrderDetailService {
+    public interface IOrderDetailService
+    {
         public OrderDetailDTO CreateOrderDetail(OrderDetailDTO orderdetailCreate);
         public OrderDetailDTO UpdateOrderDetail(OrderDetailDTO orderdetailUpdate);
         public bool DeleteOrderDetail(int idTmp);
@@ -17,7 +17,8 @@ namespace FlightEaseDB.BusinessLogic.Services
         public Task<double?> GetTotalSpendingAsync(int userId);
     }
 
-    public class OrderDetailService : IOrderDetailService {
+    public class OrderDetailService : IOrderDetailService
+    {
 
         private readonly IOrderDetailRepository _orderdetailRepository;
         private readonly IFlightRepository _flightRepository;
@@ -36,7 +37,7 @@ namespace FlightEaseDB.BusinessLogic.Services
             throw new NotImplementedException();
         }
 
-        public OrderDetailDTO UpdateOrderDetail(OrderDetailDTO orderdetailUpdate) 
+        public OrderDetailDTO UpdateOrderDetail(OrderDetailDTO orderdetailUpdate)
         {
             throw new NotImplementedException();
         }
@@ -46,12 +47,12 @@ namespace FlightEaseDB.BusinessLogic.Services
             throw new NotImplementedException();
         }
 
-        public List<OrderDetailDTO> GetAll() 
+        public List<OrderDetailDTO> GetAll()
         {
             throw new NotImplementedException();
         }
 
-        public OrderDetailDTO GetById(int idTmp) 
+        public OrderDetailDTO GetById(int idTmp)
         {
             throw new NotImplementedException();
         }
@@ -80,7 +81,7 @@ namespace FlightEaseDB.BusinessLogic.Services
                 };
             }
 
-          
+
             var currentTime = DateTime.Now;
             var totalHours = (flight.DepartureTime.Value - currentTime).TotalHours;
             if (totalHours < 72)
@@ -93,7 +94,7 @@ namespace FlightEaseDB.BusinessLogic.Services
                 };
             }
 
-     
+
             if (originalOrderDetail.Status != OrderDetailEnums.Pending.ToString() &&
                 originalOrderDetail.Status != OrderDetailEnums.Success.ToString())
             {
@@ -105,15 +106,15 @@ namespace FlightEaseDB.BusinessLogic.Services
                 };
             }
 
-          
+
             originalOrderDetail.Status = OrderDetailEnums.Refund.ToString();
             _orderdetailRepository.Update(originalOrderDetail);
 
- 
+
             var seat = _seatRepository.Get(originalOrderDetail.SeatId);
             if (seat != null && seat.PlaneId == flight.PlaneId)
             {
-            
+
                 seat.Status = SeatEnums.Available.ToString();
                 _seatRepository.Update(seat);
             }
@@ -143,7 +144,7 @@ namespace FlightEaseDB.BusinessLogic.Services
         }
         private ResultModel ProcessRefund(double? amount)
         {
-          
+
             if (amount > 0)
             {
                 return new ResultModel
@@ -166,8 +167,9 @@ namespace FlightEaseDB.BusinessLogic.Services
 
         public async Task<double?> GetTotalSpendingAsync(int userId)
         {
+            // Tính tổng chi tiêu của người dùng từ các `OrderDetail` thành công
             return await _orderdetailRepository.Get()
-                .Where(od => od.Order.UserId == userId && od.Status == "success")
+                .Where(od => od.Order.UserId == userId && od.Status == "Success")
                 .SumAsync(od => od.TotalAmount);
         }
 

@@ -2,7 +2,9 @@
 using BusinessObjects.DTOs;
 using BusinessObjects.Entities;
 using BusinessObjects.Enums;
+using MailKit.Search;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OData.UriParser;
 using Repositories.Repositories;
 using Services.EmailService;
 using Services.Helpers;
@@ -11,19 +13,23 @@ using System;
 namespace FlightEaseDB.BusinessLogic.Services
 {
 
-	public interface IUserService
-	{
-		public CreateUserDTO CreateUser(CreateUserDTO userCreate);
-		public UserDTO UpdateUser(UserDTO userUpdate);
-		public bool DeleteUser(int idTmp);
-		public List<UserDTO> GetAll();
-		public UserDTO GetById(int idTmp);
+    public interface IUserService
+    {
+        public CreateUserDTO CreateUser(CreateUserDTO userCreate);
+        public UserDTO UpdateUser(UserDTO userUpdate);
+        public bool DeleteUser(int idTmp);
+        public List<UserDTO> GetAll();
+        public UserDTO GetById(int idTmp);
 
-		public Task<ResultModel> Register(RegisterDTO userRegister);
-		public Task<ResultModel> AuthenticateAsync(LoginDTO userLogin);
+        public Task<ResultModel> Register(RegisterDTO userRegister);
+        public Task<ResultModel> AuthenticateAsync(LoginDTO userLogin);
 
         public Task<ResultModel> ForgotPasswordAsync(string email);
         public Task<ResultModel> ResetPasswordAsync(string token, string newPassword);
+
+        public Task<ResultModel> ConfirmRegister(string token);
+
+        Task UpdateUserRank(int userId);
 
 
     }
@@ -35,13 +41,17 @@ namespace FlightEaseDB.BusinessLogic.Services
         private readonly IMembershipRepository _membershipRepository;
         private readonly IPasswordRepository _passwordRepository;
         private readonly IEmailService _emailService;
-        public UserService(IUserRepository userRepository, JwtTokenHelper jwtTokenHelper, IMembershipRepository membershipRepository, IPasswordRepository passwordRepository, IEmailService emailService)
+        private readonly IMembershipService _membershipService;
+        private readonly IOrderDetailService _orderDetailService;
+        public UserService(IUserRepository userRepository, JwtTokenHelper jwtTokenHelper, IMembershipRepository membershipRepository, IPasswordRepository passwordRepository, IEmailService emailService, IMembershipService membershipService, IOrderDetailService orderDetailService)
         {
             _userRepository = userRepository;
             _jwtTokenHelper = jwtTokenHelper;
             _membershipRepository = membershipRepository;
             _passwordRepository = passwordRepository;
             _emailService = emailService;
+            _membershipService = membershipService;
+            _orderDetailService = orderDetailService;
         }
         public CreateUserDTO CreateUser(CreateUserDTO userCreate)
         {
@@ -124,15 +134,17 @@ namespace FlightEaseDB.BusinessLogic.Services
 
         public List<UserDTO> GetAll()
         {
-            // Gọi phương thức lấy tất cả từ BaseRepository
             var users = _userRepository.Get().ToList();
-            var userDtos = users.Select(user =>
+            var userDtos = new List<UserDTO>();
+
+            foreach (var user in users)
             {
+                UpdateUserRank(user.UserId).Wait();
+
                 var membership = _membershipRepository.Get(user.MembershipId);
                 var rank = membership != null ? membership.Rank : null;
 
-                // Chuyển đổi entity sang DTO
-                return new UserDTO
+                userDtos.Add(new UserDTO
                 {
                     UserId = user.UserId,
                     Email = user.Email,
@@ -143,40 +155,69 @@ namespace FlightEaseDB.BusinessLogic.Services
                     Fullname = user.Fullname,
                     Dob = user.Dob,
                     Role = user.Role,
-                    Rank = rank, // Hiển thị Rank thay vì MembershipId
+                    Rank = rank,
                     Status = user.Status
-                };
-            }).ToList();
+                });
+            }
 
             return userDtos;
         }
 
-
         public UserDTO GetById(int idTmp)
         {
-            // Gọi phương thức lấy đối tượng theo ID từ BaseRepository
+            UpdateUserRank(idTmp).Wait();
+
             var user = _userRepository.Get(idTmp);
             if (user == null) return null;
 
-            // Lấy Membership từ MembershipId và chuyển đổi sang Rank
             var membership = _membershipRepository.Get(user.MembershipId);
             var rank = membership != null ? membership.Rank : null;
 
-            // Chuyển đổi entity sang DTO
             return new UserDTO
             {
                 UserId = user.UserId,
                 Email = user.Email,
-                Gender = user.Gender,
                 Password = user.Password,
+                Gender = user.Gender,
                 Nationality = user.Nationality,
                 Address = user.Address,
                 Fullname = user.Fullname,
                 Dob = user.Dob,
                 Role = user.Role,
-                Rank = rank, // Sử dụng Rank thay vì MembershipId
+                Rank = rank,
                 Status = user.Status
             };
+        }
+
+        public async Task UpdateUserRank(int userId)
+        {
+            var totalSpent = await _orderDetailService.GetTotalSpendingAsync(userId);
+            if (totalSpent == null) return;
+
+            var user = _userRepository.Get(userId);
+            if (user == null) return;
+
+            if (totalSpent >= 8000000) // Ngưỡng cho Gold
+            {
+                var goldMembership = _membershipRepository.FirstOrDefault(m => m.Rank == "Gold");
+                if (goldMembership != null)
+                    user.MembershipId = goldMembership.MembershipId;
+            }
+            else if (totalSpent >= 5000000) // Ngưỡng cho Silver
+            {
+                var silverMembership = _membershipRepository.FirstOrDefault(m => m.Rank == "Silver");
+                if (silverMembership != null)
+                    user.MembershipId = silverMembership.MembershipId;
+            }
+            else
+            {
+                var bronzeMembership = _membershipRepository.FirstOrDefault(m => m.Rank == "Bronze");
+                if (bronzeMembership != null)
+                    user.MembershipId = bronzeMembership.MembershipId;
+            }
+
+            _userRepository.Update(user);
+            await _userRepository.SaveAsync();
         }
 
 
@@ -198,17 +239,32 @@ namespace FlightEaseDB.BusinessLogic.Services
                     return result;
                 }
 
+               
+
                 // Register the new user
                 var newUser = new User
                 {
                     Email = userRegister.Email,
                     Password = userRegister.Password,
                     Role = UserRole.Member.ToString(),
-
+                    Status = UserStatus.Inactive.ToString(),
+                    MembershipId = 3,
                 };
-
                 await _userRepository.CreateAsync(newUser);
                 await _userRepository.SaveAsync();
+
+                var token = await GenerateConfirmUserTokenAsync(userRegister.Email);
+                if (token == null)
+                {
+                    result.IsSuccess = false;
+                    result.StatusCode = 500;
+                    result.Message = "Error generating reset link. Please try again later.";
+                    return result;
+                }
+
+                var confirmationLink = $"http://localhost:3000/verify?token={token}";
+
+                await _emailService.SendEmailAsync(userRegister.Email, "Confirm you account", $"Dear User,\n\nOur system recorginzed that you have created your account with email {userRegister.Email}.\n Please confirm you account with the link bellow: {confirmationLink}\nThank you for choosing FlightEase!\n\nBest Regards,\nFlightEase Team");
 
                 result.IsSuccess = true;
                 result.StatusCode = 201;
@@ -239,7 +295,7 @@ namespace FlightEaseDB.BusinessLogic.Services
             {
                 var user = await _userRepository.FirstOrDefaultAsync(u => u.Email == userLogin.Email);
 
-                if (user != null && user.Password == userLogin.Password)
+                if (user != null && user.Password == userLogin.Password && user.Status == UserStatus.Active.ToString())
                 {
                     // Generate JWT token using the extracted User object
                     var token = _jwtTokenHelper.GenerateJwtToken(user);
@@ -335,7 +391,7 @@ namespace FlightEaseDB.BusinessLogic.Services
                 result.Message = " A reset link has been sent to your email. Please check your email !";
                 return result;
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 result.IsSuccess = false;
                 result.StatusCode = 500;
@@ -362,10 +418,10 @@ namespace FlightEaseDB.BusinessLogic.Services
                 {
                     return false;
                 }
-                
+
                 passwordResetToken = new PasswordResetToken
                 {
-                 
+
                     UserId = user.UserId,
                     Token = token,
                     ExpirationDate = DateTime.Now.AddMinutes(10),
@@ -383,6 +439,7 @@ namespace FlightEaseDB.BusinessLogic.Services
 
             return false;
         }
+
 
 
         public async Task<ResultModel> ResetPasswordAsync(string token, string newPassword)
@@ -441,6 +498,88 @@ namespace FlightEaseDB.BusinessLogic.Services
             }
 
             return result;
+        }
+        #endregion
+
+        #region ConfirmRegister
+        public async Task<ResultModel> ConfirmRegister(string token)
+        {
+            var result = new ResultModel();
+
+            try
+            {
+                var newToken = _passwordRepository.FirstOrDefault(x => x.Token == token);
+                var user = _userRepository.FirstOrDefault(u => u.UserId == newToken.UserId);
+                
+
+                if (newToken.IsUsed == false) 
+                {
+                    
+                    user.Status = UserStatus.Active.ToString();
+                    _userRepository.Update(user);
+                    _userRepository.SaveAsync();
+                    result.IsSuccess = true;
+                    result.StatusCode=200;
+                    result.Message = "Success";
+
+                }
+                else
+                {
+                    result.IsSuccess = false;
+                    result.StatusCode = 400;
+                    result.Message = "Something wrong !";
+                }
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.StatusCode = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+
+        #endregion
+
+
+        #region createCOnfirmToken
+        private async Task<string?> GenerateConfirmUserTokenAsync(string email)
+        {
+            var token = Guid.NewGuid().ToString();
+            var isStored = await GenerateAndStoreConfirmTokenAsync(email, token);
+
+            return isStored ? token : null;
+        }
+        public async Task<bool> GenerateAndStoreConfirmTokenAsync(string email, string token)
+        {
+            PasswordResetToken passwordResetToken = null;
+            var user = await _userRepository.FirstOrDefaultAsync(x => x.Email == email);
+            if (user == null)
+            {
+                return false;
+            }
+
+            {
+                passwordResetToken = new PasswordResetToken
+                {
+
+                    UserId = user.UserId,
+                    Token = token,
+                    ExpirationDate = DateTime.Now.AddMinutes(10),
+                    CreatedDate = DateTime.Now,
+                    IsUsed = false,
+                };
+            }
+
+            if (passwordResetToken != null)
+            {
+                _passwordRepository.CreateAsync(passwordResetToken);
+                await _passwordRepository.SaveAsync();
+                return true;
+            }
+
+            return false;
         }
         #endregion
     }

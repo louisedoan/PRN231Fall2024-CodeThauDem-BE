@@ -32,8 +32,5 @@ namespace BusinessObjects.DTOs
         public int AvailableBusinessSeats { get; set; }
         public int AvailableEconomySeats { get; set; }
 
-        public DateTime BookingDate { get; set; }  
-        public DateTime? CancellationDate { get; set; }  
-
     }
 }

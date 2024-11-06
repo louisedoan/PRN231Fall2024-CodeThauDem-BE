@@ -141,7 +141,7 @@ namespace FlightEase.Presentation.Controllers
         }
 
         [MapToApiVersion("1")]
-        [HttpPost("get-flight-report-by-order/{orderId}")]
+        [HttpPost("get-flight-report-by-order")]
         public async Task<IActionResult> GetFlightReportByOrderID(int orderId)
         {
             var result = await _flightService.GetFlightReportByOrderID(orderId);
