@@ -2,6 +2,7 @@
 using BusinessObjects.Entities;
 using Microsoft.AspNetCore.Http;
 using Repositories.Repositories;
+using Services.EmailService;
 using Services.VnPay;
 
 namespace FlightEaseDB.BusinessLogic.Services
@@ -24,8 +25,9 @@ namespace FlightEaseDB.BusinessLogic.Services
         private readonly IOrderDetailRepository _orderDetailRepository;
         private readonly IMembershipService _membershipService;
         private readonly IUserService _userService;
+        private readonly IEmailService _emailService;
 
-        public PaymentService(IPaymentRepository paymentRepository, IOrderRepository orderRepository, IVnPayService vnPayService, IOrderDetailRepository orderDetailRepository, IMembershipService membershipService, IUserService userService)
+        public PaymentService(IPaymentRepository paymentRepository, IOrderRepository orderRepository, IVnPayService vnPayService, IOrderDetailRepository orderDetailRepository, IMembershipService membershipService, IUserService userService, IEmailService emailService)
         {
             _paymentRepository = paymentRepository;
             _orderRepository = orderRepository;
@@ -33,6 +35,7 @@ namespace FlightEaseDB.BusinessLogic.Services
             _orderDetailRepository = orderDetailRepository;
             _membershipService = membershipService;
             _userService = userService;
+            _emailService = emailService;
         }
 
         // Tạo Payment mới từ thông tin Order
@@ -156,6 +159,7 @@ namespace FlightEaseDB.BusinessLogic.Services
                 if (order != null)
                 {
                     _userService.UpdateUserRank(order.UserId.Value).Wait(); // Gọi hàm UpdateUserRank để cập nhật Rank
+
                 }
             }
 

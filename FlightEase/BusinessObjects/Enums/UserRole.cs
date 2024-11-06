@@ -12,4 +12,10 @@ namespace BusinessObjects.Enums
         Manager ,
         Admin 
     }
+
+    public enum UserStatus 
+    {
+        Inactive,
+        Active
+    }
 }

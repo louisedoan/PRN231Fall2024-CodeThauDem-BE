@@ -2,7 +2,9 @@
 using BusinessObjects.DTOs;
 using BusinessObjects.Entities;
 using BusinessObjects.Enums;
+using MailKit.Search;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OData.UriParser;
 using Repositories.Repositories;
 using Services.EmailService;
 using Services.Helpers;
@@ -24,6 +26,8 @@ namespace FlightEaseDB.BusinessLogic.Services
 
         public Task<ResultModel> ForgotPasswordAsync(string email);
         public Task<ResultModel> ResetPasswordAsync(string token, string newPassword);
+
+        public Task<ResultModel> ConfirmRegister(string token);
 
         Task UpdateUserRank(int userId);
 
@@ -235,18 +239,32 @@ namespace FlightEaseDB.BusinessLogic.Services
                     return result;
                 }
 
+               
+
                 // Register the new user
                 var newUser = new User
                 {
                     Email = userRegister.Email,
                     Password = userRegister.Password,
                     Role = UserRole.Member.ToString(),
-                    MembershipId = 3, 
-
+                    Status = UserStatus.Inactive.ToString(),
+                    MembershipId = 3,
                 };
-
                 await _userRepository.CreateAsync(newUser);
                 await _userRepository.SaveAsync();
+
+                var token = await GenerateConfirmUserTokenAsync(userRegister.Email);
+                if (token == null)
+                {
+                    result.IsSuccess = false;
+                    result.StatusCode = 500;
+                    result.Message = "Error generating reset link. Please try again later.";
+                    return result;
+                }
+
+                var confirmationLink = $"http://localhost:3000/verify?token={token}";
+
+                await _emailService.SendEmailAsync(userRegister.Email, "Confirm you account", $"Dear User,\n\nOur system recorginzed that you have created your account with email {userRegister.Email}.\n Please confirm you account with the link bellow: {confirmationLink}\nThank you for choosing FlightEase!\n\nBest Regards,\nFlightEase Team");
 
                 result.IsSuccess = true;
                 result.StatusCode = 201;
@@ -277,7 +295,7 @@ namespace FlightEaseDB.BusinessLogic.Services
             {
                 var user = await _userRepository.FirstOrDefaultAsync(u => u.Email == userLogin.Email);
 
-                if (user != null && user.Password == userLogin.Password)
+                if (user != null && user.Password == userLogin.Password && user.Status == UserStatus.Active.ToString())
                 {
                     // Generate JWT token using the extracted User object
                     var token = _jwtTokenHelper.GenerateJwtToken(user);
@@ -423,6 +441,7 @@ namespace FlightEaseDB.BusinessLogic.Services
         }
 
 
+
         public async Task<ResultModel> ResetPasswordAsync(string token, string newPassword)
         {
             var result = new ResultModel();
@@ -479,6 +498,88 @@ namespace FlightEaseDB.BusinessLogic.Services
             }
 
             return result;
+        }
+        #endregion
+
+        #region ConfirmRegister
+        public async Task<ResultModel> ConfirmRegister(string token)
+        {
+            var result = new ResultModel();
+
+            try
+            {
+                var newToken = _passwordRepository.FirstOrDefault(x => x.Token == token);
+                var user = _userRepository.FirstOrDefault(u => u.UserId == newToken.UserId);
+                
+
+                if (newToken.IsUsed == false) 
+                {
+                    
+                    user.Status = UserStatus.Active.ToString();
+                    _userRepository.Update(user);
+                    _userRepository.SaveAsync();
+                    result.IsSuccess = true;
+                    result.StatusCode=200;
+                    result.Message = "Success";
+
+                }
+                else
+                {
+                    result.IsSuccess = false;
+                    result.StatusCode = 400;
+                    result.Message = "Something wrong !";
+                }
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.StatusCode = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+
+        #endregion
+
+
+        #region createCOnfirmToken
+        private async Task<string?> GenerateConfirmUserTokenAsync(string email)
+        {
+            var token = Guid.NewGuid().ToString();
+            var isStored = await GenerateAndStoreConfirmTokenAsync(email, token);
+
+            return isStored ? token : null;
+        }
+        public async Task<bool> GenerateAndStoreConfirmTokenAsync(string email, string token)
+        {
+            PasswordResetToken passwordResetToken = null;
+            var user = await _userRepository.FirstOrDefaultAsync(x => x.Email == email);
+            if (user == null)
+            {
+                return false;
+            }
+
+            {
+                passwordResetToken = new PasswordResetToken
+                {
+
+                    UserId = user.UserId,
+                    Token = token,
+                    ExpirationDate = DateTime.Now.AddMinutes(10),
+                    CreatedDate = DateTime.Now,
+                    IsUsed = false,
+                };
+            }
+
+            if (passwordResetToken != null)
+            {
+                _passwordRepository.CreateAsync(passwordResetToken);
+                await _passwordRepository.SaveAsync();
+                return true;
+            }
+
+            return false;
         }
         #endregion
     }
