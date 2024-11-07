@@ -75,10 +75,11 @@ namespace FlightEaseDB.BusinessLogic.Services
                             Data = null
                         };
                     }
-
+                    var ticketCode = GenerateTicketCode();
                     var orderDetail = new OrderDetail
                     {
                         Order = order,
+                        TicketCode = ticketCode,
                         Name = passenger.Name ?? throw new ArgumentNullException(nameof(passenger.Name)),
                         DoB = passenger.DoB,
                         Nationality = passenger.Nationality,
@@ -113,6 +114,7 @@ namespace FlightEaseDB.BusinessLogic.Services
                         OrderDetails = order.OrderDetails.Select(od => new OrderDetailDTO
                         {
                             OrderDetailId = od.OrderDetailId,
+                            TicketCode = od.TicketCode,
                             Name = od.Name,
                             DoB = od.DoB,
                             Nationality = od.Nationality,
@@ -137,7 +139,12 @@ namespace FlightEaseDB.BusinessLogic.Services
                 };
             }
         }
-
+        private string GenerateTicketCode()
+        {
+            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var random = new Random();
+            return new string(Enumerable.Repeat(chars, 4).Select(s => s[random.Next(s.Length)]).ToArray());
+        }
         public OrderDTO UpdateOrder(OrderDTO orderUpdate)
         {
             var existingOrder = _orderRepository.Get(orderUpdate.OrderId);
@@ -238,7 +245,9 @@ namespace FlightEaseDB.BusinessLogic.Services
                         TripType = od.TripType,
                         SeatId = od.SeatId,
                         Status = od.Status,
-                        TotalAmount = od.TotalAmount
+                        TotalAmount = od.TotalAmount,
+                        TicketCode = od.TicketCode
+
                     }).ToList()
                 };
 

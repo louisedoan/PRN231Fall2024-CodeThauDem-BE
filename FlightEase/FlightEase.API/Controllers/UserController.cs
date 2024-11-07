@@ -249,6 +249,46 @@ namespace FlightEaseDB.Presentation.Controllers
                 });
             }
         }
+        [HttpPost("confirm-user")]
+        public async Task<IActionResult> ConfirmUser(string token)
+        {
+            if (string.IsNullOrEmpty(token))
+            {
+                return BadRequest(new { isSuccess = false, statusCode = 400, message = "Token is required." });
+            }
+
+            try
+            {
+                var isResetSuccessful = await _userService.ConfirmRegister(token);
+
+                if (isResetSuccessful.IsSuccess)
+                {
+                    return Ok(new
+                    {
+                        isSuccess = isResetSuccessful.IsSuccess,
+                        statusCode = isResetSuccessful.StatusCode,
+                        data = isResetSuccessful.Data,
+                        message = isResetSuccessful.Message
+                    });
+                }
+                return StatusCode(isResetSuccessful.StatusCode, new
+                {
+                    isSuccess = isResetSuccessful.IsSuccess,
+                    statusCode = isResetSuccessful.StatusCode,
+                    message = isResetSuccessful.Message
+                });
+            }
+
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    isSuccess = false,
+                    statusCode = 500,
+                    message = $"An unexpected error occurred: {ex.Message}"
+                });
+            }
+        }
 
         [HttpPost("create-google-user")]
         public async Task<IActionResult> CreateGoogleUser([FromQuery] string displayName, [FromQuery] string email)

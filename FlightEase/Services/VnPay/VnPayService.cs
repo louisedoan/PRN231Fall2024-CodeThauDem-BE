@@ -1,8 +1,10 @@
 ﻿using BusinessObjects.DTOs;
+using BusinessObjects.Entities;
 using BusinessObjects.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Repositories.Repositories;
+using Services.EmailService;
 using System.Text.RegularExpressions;
 
 namespace Services.VnPay
@@ -19,13 +21,17 @@ namespace Services.VnPay
         private readonly IPaymentRepository _paymentRepository;
         private readonly IOrderRepository _orderRepository;
         private readonly IOrderDetailRepository _orderDetailRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly IEmailService _emailService;
 
-        public VnPayService(IConfiguration configuration, IPaymentRepository paymentRepository, IOrderDetailRepository orderDetailRepository, IOrderRepository orderRepository)
+        public VnPayService(IConfiguration configuration, IPaymentRepository paymentRepository, IOrderDetailRepository orderDetailRepository, IOrderRepository orderRepository, IUserRepository userRepository, IEmailService emailService)
         {
             _configuration = configuration;
             _paymentRepository = paymentRepository;
             _orderRepository = orderRepository;
             _orderDetailRepository = orderDetailRepository;
+            _userRepository = userRepository;
+            _emailService = emailService;
         }
 
         public string CreatePaymentUrl(HttpContext context, VnPaymentRequestModel model)
@@ -82,7 +88,13 @@ namespace Services.VnPay
 
             if (vnp_ResponseCode == "00")
             {
+                
                 var orderId = ExtractOrderId(vnp_OrderInfo);
+                var order = _orderRepository.FirstOrDefault(o => o.OrderId == orderId);
+                var user = _userRepository.FirstOrDefault(u => u.UserId == order.UserId);
+                var email = user.Email;
+
+                _emailService.SendEmailAsync(email, "Payment Success", $"Dear User,\n\nYour payment with order number {orderId} has been successfully processed.\nThank you for choosing FlightEase!\n\nBest Regards,\nFlightEase Team");
 
                 UpdatePayment(orderId);
                 return new VnPaymentResponseModel
