@@ -192,11 +192,13 @@ namespace FlightEaseDB.Presentation.Controllers
 
                 if (result.IsSuccess)
                 {
-                    return Ok(new { 
+                    return Ok(new
+                    {
                         statusCode = result.StatusCode,
                         isSuccess = result.IsSuccess,
                         data = result.Data,
-                        message = result.Message });
+                        message = result.Message
+                    });
                 }
 
                 return StatusCode(result.StatusCode, new { message = result.Message });
@@ -221,11 +223,13 @@ namespace FlightEaseDB.Presentation.Controllers
 
                 if (isResetSuccessful.IsSuccess)
                 {
-                    return Ok(new {
+                    return Ok(new
+                    {
                         isSuccess = isResetSuccessful.IsSuccess,
                         statusCode = isResetSuccessful.StatusCode,
                         data = isResetSuccessful.Data,
-                        message = isResetSuccessful.Message });
+                        message = isResetSuccessful.Message
+                    });
                 }
                 return StatusCode(isResetSuccessful.StatusCode, new
                 {
@@ -236,16 +240,34 @@ namespace FlightEaseDB.Presentation.Controllers
             }
 
             catch (Exception ex)
-          {
-        return StatusCode(500, new
+            {
+                return StatusCode(500, new
+                {
+                    isSuccess = false,
+                    statusCode = 500,
+                    message = $"An unexpected error occurred: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpPost("create-google-user")]
+        public async Task<IActionResult> CreateGoogleUser([FromQuery] string displayName, [FromQuery] string email)
         {
-            isSuccess = false,
-            statusCode = 500,
-            message = $"An unexpected error occurred: {ex.Message}"
-        });
-       }
+            if (displayName == null || email == null)
+            {
+                return BadRequest("Invalid user data");
+            }
+
+            var userCreated = await _userService.ProcessUserFromGoogleLogin(displayName, email);
+
+            if (!userCreated.IsSuccess)
+            {
+                return StatusCode(userCreated.StatusCode, new { message = userCreated.Message });
+            }
+
+            return Ok(userCreated.Data);
+        }
     }
-   }
 }
 
 

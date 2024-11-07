@@ -2,11 +2,9 @@
 using BusinessObjects.DTOs;
 using BusinessObjects.Entities;
 using BusinessObjects.Enums;
-using Microsoft.EntityFrameworkCore;
 using Repositories.Repositories;
 using Services.EmailService;
 using Services.Helpers;
-using System;
 
 namespace FlightEaseDB.BusinessLogic.Services
 {
@@ -24,7 +22,7 @@ namespace FlightEaseDB.BusinessLogic.Services
 
         public Task<ResultModel> ForgotPasswordAsync(string email);
         public Task<ResultModel> ResetPasswordAsync(string token, string newPassword);
-
+        public Task<ResultModel> ProcessUserFromGoogleLogin(string displayName, string email);
         Task UpdateUserRank(int userId);
 
 
@@ -241,7 +239,7 @@ namespace FlightEaseDB.BusinessLogic.Services
                     Email = userRegister.Email,
                     Password = userRegister.Password,
                     Role = UserRole.Member.ToString(),
-                    MembershipId = 3, 
+                    MembershipId = 3,
 
                 };
 
@@ -481,5 +479,75 @@ namespace FlightEaseDB.BusinessLogic.Services
             return result;
         }
         #endregion
+
+        public async Task<ResultModel> ProcessUserFromGoogleLogin(string displayName, string email)
+        {
+            var result = new ResultModel();
+
+            try
+            {
+                var existingUser = await _userRepository.FirstOrDefaultAsync(u => u.Email == email);
+                if (existingUser != null)
+                {
+                    var token = _jwtTokenHelper.GenerateJwtToken(existingUser);
+
+                    result.IsSuccess = true;
+                    result.StatusCode = 200;
+                    result.Message = "User already exists, logged in successfully.";
+                    result.Data = new
+                    {
+                        User = new UserDTO
+                        {
+                            UserId = existingUser.UserId,
+                            Email = existingUser.Email,
+                            Password = existingUser.Password,
+                            Fullname = existingUser.Fullname,
+                            Status = existingUser.Status
+                        },
+                        Token = token
+                    };
+                    return result;
+                }
+
+                var newUser = new User
+                {
+                    Email = email,
+                    Fullname = displayName,
+                    Password = "GoogleUser",
+                    Role = UserRole.Member.ToString(),
+                    Status = "Active",
+                    MembershipId = 1
+                };
+
+                await _userRepository.CreateAsync(newUser);
+                await _userRepository.SaveAsync();
+
+                var newToken = _jwtTokenHelper.GenerateJwtToken(newUser);
+
+                result.IsSuccess = true;
+                result.StatusCode = 201;
+                result.Message = "Google User processed successfully";
+                result.Data = new
+                {
+                    User = new UserDTO
+                    {
+                        UserId = newUser.UserId,
+                        Email = newUser.Email,
+                        Fullname = newUser.Fullname,
+                        Status = newUser.Status
+                    },
+                    Token = newToken
+                };
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.StatusCode = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+
     }
 }
