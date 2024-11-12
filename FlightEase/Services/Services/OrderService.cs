@@ -1,9 +1,7 @@
 using BusinessObjects.DTOs;
 using BusinessObjects.Entities;
-using BusinessObjects.Enums;
 using Microsoft.EntityFrameworkCore;
 using Repositories.Repositories;
-using Services.Helpers;
 
 namespace FlightEaseDB.BusinessLogic.Services
 {
@@ -60,6 +58,7 @@ namespace FlightEaseDB.BusinessLogic.Services
                 }
 
                 var membership = _membershipRepository.Get(user.MembershipId);
+                var rank = membership.Rank;
                 var discount = membership?.Discount ?? 0.0; // Nếu không có Membership, Discount là 0
 
                 var order = new Order
@@ -127,7 +126,7 @@ namespace FlightEaseDB.BusinessLogic.Services
                 return new ResultModel
                 {
                     IsSuccess = true,
-                    Message = "Order created successfully",
+                    Message = $"Order created successfully. Your rank is {rank}, The discount is {discount}%",
                     Data = new OrderCreateDTO
                     {
                         OrderId = order.OrderId,
