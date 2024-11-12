@@ -127,6 +127,25 @@ namespace FlightEase.Presentation.Controllers
         }
 
         [MapToApiVersion("1")]
+        [HttpGet("search-return-flight")]
+        public ActionResult<List<FlightDTO>> SearchReturnFlight([FromQuery] int departureLocation, [FromQuery] int arrivalLocation, [FromQuery] DateTime returnDate)
+        {
+            try
+            {
+                var flights = _flightService.SearchReturnFlight(departureLocation, arrivalLocation, returnDate);
+                if (flights == null || flights.Count == 0)
+                {
+                    return NotFound("No flights found for the given criteria.");
+                }
+                return Ok(flights);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [MapToApiVersion("1")]
         [HttpGet("get-all-flightReport")]
         public async Task<ActionResult<ResultModel>> GetAll()
         {
