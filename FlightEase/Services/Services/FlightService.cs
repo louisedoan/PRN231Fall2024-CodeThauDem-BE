@@ -7,7 +7,7 @@ using Repositories.Repositories;
 public interface IFlightService
 {
     public FlightDTO CreateFlight(FlightDTO flightCreate);
-    public FlightDTO UpdateFlight(FlightDTO flightUpdate);
+    Task<ResultModel> UpdateFlight(FlightDTO flightUpdate);
     public bool DeleteFlight(int idTmp);
     public List<FlightDTO> GetAll();
     public FlightDTO GetById(int idTmp);
@@ -26,7 +26,7 @@ public class FlightService : IFlightService
     private readonly IPlaneRepository _planeRepository;
     private readonly ISeatRepository _seatRepository;
     private readonly IOrderDetailRepository _orderDetailRepository;
-
+    private readonly IOrderRepository _orderRepository;
 
     public FlightService(IFlightRepository flightRepository, IFlightRouteRepository flightRouteRepository, IPlaneRepository planeRepository, ISeatRepository seatRepository, IOrderDetailRepository orderDetailRepository)
     {
@@ -83,22 +83,47 @@ public class FlightService : IFlightService
         return flightDTO;
     }
 
-    public FlightDTO UpdateFlight(FlightDTO flightUpdate)
+    public async Task<ResultModel> UpdateFlight(FlightDTO flightUpdate)
     {
+        var result = new ResultModel();
+
         // Retrieve the existing flight entity by FlightId
-        var flight = _flightRepository.Get().FirstOrDefault(f => f.FlightId == flightUpdate.FlightId);
+        var flight = await _flightRepository.Get().FirstOrDefaultAsync(f => f.FlightId == flightUpdate.FlightId);
 
         // Check if the flight exists
         if (flight == null)
         {
-            return null; // Or handle it as appropriate, such as throwing an exception or returning an error DTO
+            result.IsSuccess = false;
+            result.Message = "Flight not found.";
+            return result;
         }
 
-        // Check if the PlaneId has changed
+        // Check if the FlightStatus is "Available"
+        if (flight.FlightStatus != FlightStatus.Available.ToString())
+        {
+            result.IsSuccess = false;
+            result.Message = "Flight status is not 'Available'. Only flights with 'Available' status can be updated.";
+            return result;
+        }
+
+        // Check if there are any successful OrderDetails or Orders associated with this Flight
+        var hasSuccessfulOrderDetails = await _orderDetailRepository.Get()
+            .AnyAsync(od => od.FlightId == flight.FlightId && od.Status == "Success");
+
+
+        if (hasSuccessfulOrderDetails)
+        {
+            // If there are associated OrderDetails or Orders with "Success" status, return an error indicating no updates allowed
+            result.IsSuccess = false;
+            result.Message = "Cannot update flight as it has existing successful orders.";
+            return result;
+        }
+
+        // If conditions are met, proceed with updating all fields
         if (flight.PlaneId != flightUpdate.PlaneId)
         {
             // Set the status of the old plane to "Available"
-            var oldPlane = _planeRepository.Get().FirstOrDefault(p => p.PlaneId == flight.PlaneId);
+            var oldPlane = await _planeRepository.Get().FirstOrDefaultAsync(p => p.PlaneId == flight.PlaneId);
             if (oldPlane != null)
             {
                 oldPlane.Status = PlaneStatus.Available.ToString();
@@ -106,7 +131,7 @@ public class FlightService : IFlightService
             }
 
             // Set the status of the new plane to "InUse"
-            var newPlane = _planeRepository.Get().FirstOrDefault(p => p.PlaneId == flightUpdate.PlaneId);
+            var newPlane = await _planeRepository.Get().FirstOrDefaultAsync(p => p.PlaneId == flightUpdate.PlaneId);
             if (newPlane != null)
             {
                 newPlane.Status = PlaneStatus.InUse.ToString();
@@ -114,7 +139,7 @@ public class FlightService : IFlightService
             }
         }
 
-        // Update the flight entity with new values from flightUpdate DTO
+        // Update all fields in the flight entity
         flight.PlaneId = flightUpdate.PlaneId;
         flight.FlightNumber = flightUpdate.FlightNumber;
         flight.DepartureLocation = flightUpdate.DepartureLocation;
@@ -125,13 +150,12 @@ public class FlightService : IFlightService
 
         // Update the flight in the repository
         _flightRepository.Update(flight);
-        _flightRepository.Save();
+        await _flightRepository.SaveAsync();
+        await _planeRepository.SaveAsync();
 
-        // Save changes to plane repository as well
-        _planeRepository.Save();
-
-        // Map the updated flight entity back to a DTO to return
-        var updatedFlightDTO = new FlightDTO
+        result.IsSuccess = true;
+        result.Message = "Flight updated successfully.";
+        result.Data = new FlightDTO
         {
             FlightId = flight.FlightId,
             PlaneId = flight.PlaneId,
@@ -143,9 +167,8 @@ public class FlightService : IFlightService
             FlightStatus = flight.FlightStatus
         };
 
-        return updatedFlightDTO;
+        return result;
     }
-
 
 
     public bool DeleteFlight(int idTmp)
