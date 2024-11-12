@@ -85,16 +85,23 @@ namespace FlightEase.Presentation.Controllers
 
         [MapToApiVersion("1")]
         [HttpPut]
-        public ActionResult<FlightDTO> UpdateFlight(FlightDTO flightCreate)
+        public async Task<ActionResult<ResultModel>> UpdateFlight(FlightDTO flightCreate)
         {
-            var flightUpdated = _flightService.UpdateFlight(flightCreate);
+            // Call the async UpdateFlight method in the service
+            var result = await _flightService.UpdateFlight(flightCreate);
 
-            if (flightUpdated == null)
+            if (!result.IsSuccess)
             {
-                return NotFound("");
+                // Return an error response based on the message in ResultModel
+                return result.Message.Contains("not found")
+                    ? NotFound(result.Message)
+                    : BadRequest(result.Message);
             }
-            return flightUpdated;
+
+            // Return the updated FlightDTO if successful
+            return Ok(result);
         }
+
         [MapToApiVersion("1")]
         [EnableQuery]
         [HttpGet("query")]

@@ -108,7 +108,7 @@ namespace Services.Services.BackgroundWorker
 
                     foreach (var orderDetail in orderDetails)
                     {
-                        orderDetail.Status = "Cancel";
+                        orderDetail.Status = "Cancelled";
                         orderDetailRepository.Update(orderDetail);
 
                         // Update the associated Seat to "Available"
