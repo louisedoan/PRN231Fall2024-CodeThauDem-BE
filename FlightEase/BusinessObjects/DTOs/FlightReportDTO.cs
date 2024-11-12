@@ -12,6 +12,11 @@ namespace BusinessObjects.DTOs
         public int OrderId { get; set; }  
         public string PaymentStatus { get; set; }  
         public string BookingStatus { get; set; }  
+        public string Name { get; set; }
+        public string Email {  get; set; }
+
+        public int SeatNumber { get; set; }
+
 
         // Flight details
         public int FlightId { get; set; }

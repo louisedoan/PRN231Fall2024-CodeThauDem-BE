@@ -280,6 +280,8 @@ public class FlightService : IFlightService
                                  from arrivalRoute in arrivalGroup.DefaultIfEmpty()
                                  join plane in planes on flight.PlaneId equals plane.PlaneId into planeGroup
                                  from plane in planeGroup.DefaultIfEmpty()
+                                 join seat in seats on order.SeatId equals seat.SeatId into seatGroup
+                                 from seat in seatGroup.DefaultIfEmpty()
                                  let availableBusinessSeats = seats.Count(s => s.PlaneId == flight.PlaneId && s.SeatNumer >= 1 && s.SeatNumer <= 12 && s.Status == "Available")
                                  let availableEconomySeats = seats.Count(s => s.PlaneId == flight.PlaneId && s.SeatNumer >= 13 && s.SeatNumer <= 42 && s.Status == "Available")
                                  select new FlightReportDTO
@@ -289,6 +291,9 @@ public class FlightService : IFlightService
                                      //BookingStatus,...
                                      FlightId = flight.FlightId,
                                      PlaneId = flight.PlaneId,
+                                     Name = order.Name,
+                                     Email = order.Email,
+                                     SeatNumber = seat?.SeatNumer ?? 0,
                                      PlaneCode = plane?.PlaneCode,
                                      FlightNumber = flight.FlightNumber,
                                      DepartureLocation = flight.DepartureLocation,
@@ -351,7 +356,7 @@ public class FlightService : IFlightService
             var flightRoutes = _flightRouteRepository.Get().ToList();
             var plane = _planeRepository.Get().FirstOrDefault(p => p.PlaneId == flight.PlaneId);
             var seats = _seatRepository.Get().ToList();
-
+            var seat = seats.FirstOrDefault(s => s.SeatId == order.SeatId);
 
             var departureRoute = flightRoutes.FirstOrDefault(fr => fr.FlightRouteId == flight.DepartureLocation);
             var arrivalRoute = flightRoutes.FirstOrDefault(fr => fr.FlightRouteId == flight.ArrivalLocation);
@@ -366,7 +371,10 @@ public class FlightService : IFlightService
                 PaymentStatus = order.Status,
                 FlightId = flight.FlightId,
                 PlaneId = flight.PlaneId,
+                Name = order.Name,
+                Email = order.Email,
                 PlaneCode = plane?.PlaneCode,
+                SeatNumber = seat?.SeatNumer ?? 0,
                 FlightNumber = flight.FlightNumber,
                 DepartureLocation = flight.DepartureLocation,
                 DepartureLocationName = departureRoute?.Location ?? "Unknown",
