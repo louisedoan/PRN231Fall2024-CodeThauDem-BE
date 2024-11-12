@@ -1,7 +1,6 @@
 using BusinessObjects.DTOs;
 using FlightEaseDB.BusinessLogic.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OData.Query;
 
 namespace FlightEaseDB.Presentation.Controllers
 {

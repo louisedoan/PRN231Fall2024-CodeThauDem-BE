@@ -13,7 +13,7 @@ public interface IFlightService
     public FlightDTO GetById(int idTmp);
     public List<FlightDTO> SearchFlight();
     List<FlightDTO> SearchOneWayFlight(int departureLocation, int arrivalLocation, DateTime departureDate);
-
+    List<FlightDTO> SearchReturnFlight(int departureLocation, int arrivalLocation, DateTime returnDate);
     Task<ResultModel> GetAllFlightReports();
     Task<ResultModel> GetFlightReportByOrderID(int orderId);
 }
@@ -39,9 +39,9 @@ public class FlightService : IFlightService
 
     public FlightDTO CreateFlight(FlightDTO flightCreate)
     {
-       
 
-       
+
+
         var flight = new Flight
         {
             FlightId = flightCreate.FlightId,
@@ -54,21 +54,21 @@ public class FlightService : IFlightService
             FlightStatus = "Available"
         };
 
-        
+
         _flightRepository.Create(flight);
         _flightRepository.Save();
 
-       
+
         var plane = _planeRepository.Get().FirstOrDefault(p => p.PlaneId == flightCreate.PlaneId);
         if (plane != null)
         {
-            
-            plane.Status = PlaneStatus.InUse.ToString(); 
+
+            plane.Status = PlaneStatus.InUse.ToString();
             _planeRepository.Update(plane);
-            _planeRepository.Save(); 
+            _planeRepository.Save();
         }
 
-        
+
         var flightDTO = new FlightDTO
         {
             FlightId = flight.FlightId,
@@ -101,20 +101,20 @@ public class FlightService : IFlightService
             .Include(f => f.ArrivalLocationNavigation) // Include ArrivalLocation
             .ToList();
 
-      
+
         var flightDTOs = flights.Select(x => new FlightDTO
         {
             FlightId = x.FlightId,
             PlaneId = x.PlaneId,
             FlightNumber = x.FlightNumber,
             DepartureLocation = x.DepartureLocation,
-            DepartureLocationName = x.DepartureLocationNavigation?.Location, 
+            DepartureLocationName = x.DepartureLocationNavigation?.Location,
             DepartureTime = x.DepartureTime,
             ArrivalLocation = x.ArrivalLocation,
-            ArrivalLocationName = x.ArrivalLocationNavigation?.Location, 
+            ArrivalLocationName = x.ArrivalLocationNavigation?.Location,
             ArrivalTime = x.ArrivalTime,
             FlightStatus = x.FlightStatus,
-            
+
         }).ToList();
 
         return flightDTOs;
@@ -180,6 +180,47 @@ public class FlightService : IFlightService
     {
         var flights = _flightRepository.Get()
             .Where(f => f.DepartureLocation == departureLocation && f.ArrivalLocation == arrivalLocation && f.DepartureTime.Value.Date == departureDate.Date && f.FlightStatus == FlightStatus.Available.ToString())
+            .ToList();
+
+        var flightRoutes = _flightRouteRepository.Get().ToList();
+        var planes = _planeRepository.Get().ToList();
+        var seats = _seatRepository.Get().ToList();
+
+        var flightDTOs = (from flight in flights
+                          join departureRoute in flightRoutes on flight.DepartureLocation equals departureRoute.FlightRouteId into departureGroup
+                          from departureRoute in departureGroup.DefaultIfEmpty()
+                          join arrivalRoute in flightRoutes on flight.ArrivalLocation equals arrivalRoute.FlightRouteId into arrivalGroup
+                          from arrivalRoute in arrivalGroup.DefaultIfEmpty()
+                          join plane in planes on flight.PlaneId equals plane.PlaneId into planeGroup
+                          from plane in planeGroup.DefaultIfEmpty()
+                          let availableBusinessSeats = seats.Count(s => s.PlaneId == flight.PlaneId && s.SeatNumer >= 1 && s.SeatNumer <= 12 && s.Status == "Available")
+                          let availableEconomySeats = seats.Count(s => s.PlaneId == flight.PlaneId && s.SeatNumer >= 13 && s.SeatNumer <= 42 && s.Status == "Available")
+
+
+                          select new FlightDTO
+                          {
+                              FlightId = flight.FlightId,
+                              FlightNumber = flight.FlightNumber,
+                              PlaneId = flight.PlaneId,
+                              PlaneCode = plane?.PlaneCode,
+                              DepartureLocation = flight.DepartureLocation,
+                              DepartureLocationName = departureRoute?.Location ?? "Unknown",
+                              DepartureTime = flight.DepartureTime,
+                              ArrivalLocation = flight.ArrivalLocation,
+                              ArrivalLocationName = arrivalRoute?.Location ?? "Unknown",
+                              ArrivalTime = flight.ArrivalTime,
+                              FlightStatus = flight.FlightStatus,
+                              AvailableBusinessSeats = availableBusinessSeats,
+                              AvailableEconomySeats = availableEconomySeats
+                          }).ToList();
+
+        return flightDTOs;
+    }
+
+    public List<FlightDTO> SearchReturnFlight(int departureLocation, int arrivalLocation, DateTime returnDate)
+    {
+        var flights = _flightRepository.Get()
+            .Where(f => f.DepartureLocation == departureLocation && f.ArrivalLocation == arrivalLocation && f.DepartureTime.Value.Date == returnDate.Date && f.FlightStatus == FlightStatus.Available.ToString())
             .ToList();
 
         var flightRoutes = _flightRouteRepository.Get().ToList();
@@ -292,7 +333,7 @@ public class FlightService : IFlightService
         var result = new ResultModel();
         try
         {
-            
+
             var order = _orderDetailRepository.Get().FirstOrDefault(o => o.OrderDetailId == orderId);
             if (order == null)
             {
@@ -302,7 +343,7 @@ public class FlightService : IFlightService
                 return result;
             }
 
-         
+
             var flight = _flightRepository.Get().FirstOrDefault(f => f.FlightId == order.FlightId);
             if (flight == null)
             {
@@ -320,7 +361,7 @@ public class FlightService : IFlightService
             var departureRoute = flightRoutes.FirstOrDefault(fr => fr.FlightRouteId == flight.DepartureLocation);
             var arrivalRoute = flightRoutes.FirstOrDefault(fr => fr.FlightRouteId == flight.ArrivalLocation);
 
-            
+
             var availableBusinessSeats = seats.Count(s => s.PlaneId == flight.PlaneId && s.SeatNumer >= 1 && s.SeatNumer <= 12 && s.Status == "Available");
             var availableEconomySeats = seats.Count(s => s.PlaneId == flight.PlaneId && s.SeatNumer >= 13 && s.SeatNumer <= 42 && s.Status == "Available");
 
