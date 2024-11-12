@@ -81,7 +81,7 @@ namespace FlightEaseDB.Presentation.Controllers
             }
             return orderdetailUpdated;
         }
-        [HttpPut("api/v1/orderdetails/cancel/{orderDetailId}")]
+        [HttpPut("cancel/{orderDetailId}")]
         public IActionResult CancelOrderDetail(int orderDetailId)
         {
             var result = _orderdetailService.CancelTicket(orderDetailId);
