@@ -85,8 +85,68 @@ public class FlightService : IFlightService
 
     public FlightDTO UpdateFlight(FlightDTO flightUpdate)
     {
-        throw new NotImplementedException();
+        // Retrieve the existing flight entity by FlightId
+        var flight = _flightRepository.Get().FirstOrDefault(f => f.FlightId == flightUpdate.FlightId);
+
+        // Check if the flight exists
+        if (flight == null)
+        {
+            return null; // Or handle it as appropriate, such as throwing an exception or returning an error DTO
+        }
+
+        // Check if the PlaneId has changed
+        if (flight.PlaneId != flightUpdate.PlaneId)
+        {
+            // Set the status of the old plane to "Available"
+            var oldPlane = _planeRepository.Get().FirstOrDefault(p => p.PlaneId == flight.PlaneId);
+            if (oldPlane != null)
+            {
+                oldPlane.Status = PlaneStatus.Available.ToString();
+                _planeRepository.Update(oldPlane);
+            }
+
+            // Set the status of the new plane to "InUse"
+            var newPlane = _planeRepository.Get().FirstOrDefault(p => p.PlaneId == flightUpdate.PlaneId);
+            if (newPlane != null)
+            {
+                newPlane.Status = PlaneStatus.InUse.ToString();
+                _planeRepository.Update(newPlane);
+            }
+        }
+
+        // Update the flight entity with new values from flightUpdate DTO
+        flight.PlaneId = flightUpdate.PlaneId;
+        flight.FlightNumber = flightUpdate.FlightNumber;
+        flight.DepartureLocation = flightUpdate.DepartureLocation;
+        flight.DepartureTime = flightUpdate.DepartureTime;
+        flight.ArrivalLocation = flightUpdate.ArrivalLocation;
+        flight.ArrivalTime = flightUpdate.ArrivalTime;
+        flight.FlightStatus = flightUpdate.FlightStatus;
+
+        // Update the flight in the repository
+        _flightRepository.Update(flight);
+        _flightRepository.Save();
+
+        // Save changes to plane repository as well
+        _planeRepository.Save();
+
+        // Map the updated flight entity back to a DTO to return
+        var updatedFlightDTO = new FlightDTO
+        {
+            FlightId = flight.FlightId,
+            PlaneId = flight.PlaneId,
+            FlightNumber = flight.FlightNumber,
+            DepartureLocation = flight.DepartureLocation,
+            DepartureTime = flight.DepartureTime,
+            ArrivalLocation = flight.ArrivalLocation,
+            ArrivalTime = flight.ArrivalTime,
+            FlightStatus = flight.FlightStatus
+        };
+
+        return updatedFlightDTO;
     }
+
+
 
     public bool DeleteFlight(int idTmp)
     {
