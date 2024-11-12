@@ -25,28 +25,49 @@ namespace FlightEaseDB.BusinessLogic.Services
         private readonly IFlightRepository _flightRepository;
         private readonly IOrderDetailRepository _orderDetailRepository;
         private readonly IFlightRouteRepository _flightRouteRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly IMembershipRepository _membershipRepository;
 
         public OrderService(IOrderRepository orderRepository, ISeatRepository seatRepository,
                             IFlightRepository flightRepository, IOrderDetailRepository orderDetailRepository,
-                            IFlightRouteRepository flightRouteRepository)
+                            IFlightRouteRepository flightRouteRepository,
+                            IUserRepository userRepository,
+                            IMembershipRepository membershipRepository)
         {
             _orderRepository = orderRepository;
             _seatRepository = seatRepository;
             _flightRepository = flightRepository;
             _orderDetailRepository = orderDetailRepository;
             _flightRouteRepository = flightRouteRepository;
+            _userRepository = userRepository;
+            _membershipRepository = membershipRepository;
         }
 
         public async Task<ResultModel> CreateOrder(OrderCreateDTO orderCreate)
         {
             try
             {
+                // Lấy thông tin User và Membership để áp dụng Discount
+                var user = await _userRepository.GetAsync(orderCreate.UserId.Value);
+                if (user == null)
+                {
+                    return new ResultModel
+                    {
+                        IsSuccess = false,
+                        Message = "User not found",
+                        StatusCode = 404
+                    };
+                }
+
+                var membership = _membershipRepository.Get(user.MembershipId);
+                var discount = membership?.Discount ?? 0.0; // Nếu không có Membership, Discount là 0
+
                 var order = new Order
                 {
                     UserId = orderCreate.UserId,
                     OrderDate = DateTime.Now,
                     Status = "Pending",
-                    TotalPrice = orderCreate.TotalPrice
+                    TotalPrice = 0 // Sẽ được tính lại bên dưới sau khi áp dụng Discount
                 };
 
                 foreach (var passenger in orderCreate.Passengers)
@@ -75,7 +96,9 @@ namespace FlightEaseDB.BusinessLogic.Services
                             Data = null
                         };
                     }
+
                     var ticketCode = GenerateTicketCode();
+                    var discountedPrice = passenger.Price * (1 - discount / 100); // Áp dụng Discount
                     var orderDetail = new OrderDetail
                     {
                         Order = order,
@@ -88,10 +111,11 @@ namespace FlightEaseDB.BusinessLogic.Services
                         TripType = passenger.TripType ?? throw new ArgumentNullException(nameof(passenger.TripType)),
                         SeatId = seat.SeatId,
                         Status = "Pending",
-                        TotalAmount = passenger.Price
+                        TotalAmount = discountedPrice // Gán giá trị sau khi đã áp dụng Discount
                     };
 
                     order.OrderDetails.Add(orderDetail);
+                    order.TotalPrice += discountedPrice; // Cộng dồn tổng tiền sau khi đã giảm giá
 
                     seat.Status = "Taken";
                     _seatRepository.Update(seat);
@@ -139,6 +163,7 @@ namespace FlightEaseDB.BusinessLogic.Services
                 };
             }
         }
+
         private string GenerateTicketCode()
         {
             var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -317,7 +342,4 @@ namespace FlightEaseDB.BusinessLogic.Services
 
 
     }
-
-
-
 }
