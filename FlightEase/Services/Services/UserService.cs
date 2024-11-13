@@ -118,14 +118,22 @@ namespace FlightEaseDB.BusinessLogic.Services
 
         public bool DeleteUser(int idTmp)
         {
-            var user = _userRepository.Get(idTmp);
-            if (user == null) return false;
+            try
+            {
+                var user = _userRepository.Get(idTmp);
+                if (user == null) return false;
 
-            // Gọi phương thức xóa từ BaseRepository
-            _userRepository.Delete(user);
-            _userRepository.Save();
+                // Gọi phương thức xóa từ BaseRepository
+                user.Status = UserStatus.Inactive.ToString();
+                _userRepository.Update(user);
+                _userRepository.Save();
 
-            return true;
+                return true;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
         }
 
         public List<UserDTO> GetAll()

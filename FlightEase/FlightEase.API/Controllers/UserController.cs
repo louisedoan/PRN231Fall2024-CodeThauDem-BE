@@ -77,14 +77,21 @@ namespace FlightEaseDB.Presentation.Controllers
         [HttpDelete("delete/{idTmp}")]
         public ActionResult DeleteUser(int idTmp)
         {
-            var isDeleted = _userService.DeleteUser(idTmp);
-
-            if (!isDeleted)
+            try
             {
-                return NotFound($"User with ID {idTmp} not found");
-            }
+                var isDeleted = _userService.DeleteUser(idTmp);
 
-            return Ok(new { message = "User deleted successfully" });
+                if (!isDeleted)
+                {
+                    return NotFound($"User with ID {idTmp} not found");
+                }
+
+                return Ok(new { message = "User deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // API: Update user by ID
